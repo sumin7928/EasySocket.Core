@@ -1,0 +1,1 @@
+# EasySocket.Core
