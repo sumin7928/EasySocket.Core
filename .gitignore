@@ -1,0 +1,9 @@
+bin
+obj
+exe
+*.user
+*.suo
+.nuget
+.vs
+
+**/logs/
