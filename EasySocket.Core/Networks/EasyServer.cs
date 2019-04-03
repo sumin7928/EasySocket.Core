@@ -82,7 +82,7 @@ namespace EasySocket.Core.Networks
             }
         }
 
-        public void Run()
+        public void Start()
         {
             try
             {

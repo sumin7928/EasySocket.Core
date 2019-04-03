@@ -3,7 +3,7 @@ using Xunit;
 
 namespace EasySocket.Core.Tests
 {
-    public class UnitTest1
+    public class ServerTest
     {
         [Fact]
         public void Test1()
