@@ -7,29 +7,6 @@ namespace EasySocket.Core.Networks
 {
     public interface IEasySocket
     {
-
-        /// <summary>
-        /// socket에 헤더 정보 값을 넣어줌
-        /// </summary>
-        /// <param name="key">header key.</param>
-        /// <param name="value">value</param>
-        void Put(object key, object value);
-
-        /// <summary>
-        /// socket 헤더에 저장된 정보 가져옴
-        /// </summary>
-        /// <param name="key">header key.</param>
-        /// <returns></returns>
-        object Get(object key);
-
-        /// <summary>
-        /// socket 헤더에 저장된 정보 가져옴 없을 시 default 값 리턴
-        /// </summary>
-        /// <param name="key">header key.</param>
-        /// <param name="defaultValue">없을 시 default 값.</param>
-        /// <returns></returns>
-        object Get(object key, object defaultValue);
-
         /// <summary>
         /// 비동기로 socket receive 처리 구현, action handler로 받은 데이터 그대로 넘겨준다.
         /// </summary>
@@ -39,18 +16,17 @@ namespace EasySocket.Core.Networks
         /// <summary>
         /// 비동기로 socket receive 처리 구현, action handler로 지정된 패킷 총 길이 만큼 byte[]을 받는다.
         /// </summary>
-        /// <param name="totalLengthOffet">패킷 총 길이에 해당하는 binary offset 지정.</param>
-        /// <param name="totalLengthSize">패킷 총 길이에 해당하는 binary size 지정.</param>
-        /// <param name="action">패킷 byte[]을 받는 handler.</param>
-        void Receive(int totalLengthOffet, int totalLengthSize, Action<byte[]> action);
+        /// <param name="offset">패킷 총 길이에 해당하는 binary offset 지정.</param>
+        /// <param name="length">패킷 총 길이에 해당하는 binary size 지정.</param>
+        /// <param name="receiveBuffer">패킷 byte[]을 받는 handler.</param>
+        void Receive(int offset, int length, Action<byte[]> receiveBuffer);
 
         /// <summary>
         /// 비동기로 socket send 처리 구현, action handler로 보낸 총 바이트 수를 받는다.
         /// </summary>
         /// <param name="sendData">보낼 byte[] 데이터.</param>
-        /// <param name="length">보낼 byte[] 길이.</param>
-        /// <param name="action">보낸 패킷 사이즈를 받는 handler.</param>
-        void Send(byte[] sendData, int length, Action<int> action);
+        /// <param name="length">보낸 패킷 사이즈를 받는 handler.</param>
+        void Send(byte[] sendData, Action<int> length);
 
         /// <summary>
         /// 소켓을 종료시킨다. ( Shutdown 진행 )

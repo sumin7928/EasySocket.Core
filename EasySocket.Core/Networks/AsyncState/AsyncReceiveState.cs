@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 
-namespace EasySocket.Core.AsyncState
+namespace EasySocket.Core.Networks.AsyncState
 {
     class AsyncReceiveState
     {
@@ -13,11 +13,11 @@ namespace EasySocket.Core.AsyncState
 
         public Socket AsyncSocket { set; get; }
 
-        public Action<byte[]> Action { set; get; }
+        public Action<byte[]> ReceiveBuffer { set; get; }
 
-        public int TotalLengthOffset { set; get; }
+        public int Offset { set; get; }
 
-        public int TotalLengthSize { set; get; }
+        public int Length { set; get; }
 
         public byte[] ChunkBuffer { set; get; }
 
@@ -31,9 +31,9 @@ namespace EasySocket.Core.AsyncState
             ChunkBufferOffset += receivedSize;
 
             // 총 데이터 사이즈 파싱 처리일 경우 
-            if (TotalLengthSize - TotalLengthOffset > 0)
+            if (Length - Offset > 0)
             {
-                byte[] sizeByte = new byte[TotalLengthSize - TotalLengthOffset];
+                byte[] sizeByte = new byte[Length - Offset];
                 Array.Copy(ChunkBuffer, sizeByte, sizeByte.Length);
 
                 // LittleEndian 계열의 Cpu를 사용하는 머신일 경우
@@ -69,7 +69,7 @@ namespace EasySocket.Core.AsyncState
                         Array.Clear(ChunkBuffer, 0, ChunkSize);
                         ChunkBufferOffset = 0;
                     }
-                    Action(respose);
+                    ReceiveBuffer(respose);
                 }
             }
             // 일반 패킷 처리일 경우
@@ -79,7 +79,7 @@ namespace EasySocket.Core.AsyncState
                 Array.Copy(ChunkBuffer, respose, respose.Length);
                 Array.Clear(ChunkBuffer, 0, ChunkSize);
                 ChunkBufferOffset = 0;
-                Action(respose);
+                ReceiveBuffer(respose);
 
             }
         }

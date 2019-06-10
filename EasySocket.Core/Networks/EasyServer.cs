@@ -15,8 +15,6 @@ namespace EasySocket.Core.Networks
 
         private Action<IEasySocket> connectAction;
         private Action<Exception> exceptionAction;
-        private TcpListener tcpListener;
-
 
         public EasyServer(ServerOptions options)
         {
@@ -33,25 +31,15 @@ namespace EasySocket.Core.Networks
             exceptionAction = action;
         }
 
-        public void Listen()
+        public async Task Listen()
         {
-            Listen(options.Host, options.Port);
-        }
-
-        public void Listen(int port)
-        {
-            Listen(options.Host, port);
-        }
-
-        public void Listen(string address, int port)
-        {
-            if(connectAction == null)
+            if( connectAction == null )
             {
-                throw new InvalidOperationException("Not found connect action logic");
+                throw new InvalidOperationException( "Not found connect action logic" );
             }
 
-            IPAddress addr = IPAddress.Parse(address);
-            tcpListener = new TcpListener(addr, port);
+            IPAddress addr = IPAddress.Parse( options.Host );
+            TcpListener tcpListener = new TcpListener( addr, options.Port );
             Socket serverSocket = tcpListener.Server;
 
             serverSocket.ReceiveBufferSize = options.ReceiveBufferSize;
@@ -61,34 +49,11 @@ namespace EasySocket.Core.Networks
 
             try
             {
-                tcpListener.Start(options.ListenBackLog);
-            }
-            catch( Exception e )
-            {
-                exceptionAction?.Invoke(e);
-            }
-        }
+                tcpListener.Start( options.ListenBackLog );
 
-
-        public void Stop()
-        {
-            try
-            {
-                tcpListener.Stop();
-            }
-            catch ( Exception e )
-            {
-                exceptionAction?.Invoke( e );
-            }
-        }
-
-        public void Start()
-        {
-            try
-            {
-                Socket socket = null;
-                while ( ( socket = tcpListener.AcceptSocket() ) != null && socket.Connected )
+                while(true)
                 {
+                    Socket socket = await tcpListener.AcceptSocketAsync();
                     string socketId = Guid.NewGuid().ToString();
                     connectAction( new EasySocket( socketId, socket, options ) );
                 }

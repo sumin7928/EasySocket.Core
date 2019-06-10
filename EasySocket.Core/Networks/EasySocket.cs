@@ -1,4 +1,4 @@
-﻿using EasySocket.Core.AsyncState;
+﻿using EasySocket.Core.Networks.AsyncState;
 using EasySocket.Core.Options;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace EasySocket.Core.Networks
     {
         private readonly string socketId;
 
-        private Dictionary<object,object> header = new Dictionary<object, object>();
+        private Dictionary<object, object> Items { get; set; } = new Dictionary<object, object>();
 
         private Timer readTimeoutTImer;
         private Timer idleTimeoutTimer;
@@ -61,38 +61,18 @@ namespace EasySocket.Core.Networks
             }
         }
 
-        public void Put(object key, object value)
-        {
-            header[key] = value;
-        }
-
-        public object Get(object key)
-        {
-            header.TryGetValue(key, out object value);
-            return value;
-        }
-
-        public object Get(object key, object deafultValue)
-        {
-            if(!header.TryGetValue(key, out object value))
-            {
-                return deafultValue;
-            }
-            return value;
-        }
-
         public void Receive(Action<byte[]> action)
         {
             Receive(0, 0, action);
         }
 
-        public void Receive(int totalLengthOffet, int totalLengthSize, Action<byte[]> action)
+        public void Receive(int totalLengthOffet, int totalLengthSize, Action<byte[]> receiveBuffer)
         {
             AsyncReceiveState state = new AsyncReceiveState
             {
-                Action = action,
-                TotalLengthOffset = totalLengthOffet,
-                TotalLengthSize = totalLengthSize,
+                ReceiveBuffer = receiveBuffer,
+                Offset = totalLengthOffet,
+                Length = totalLengthSize,
                 AsyncSocket = Socket
             };
 
@@ -167,18 +147,18 @@ namespace EasySocket.Core.Networks
             }
         }
 
-        public void Send(byte[] sendData, int length, Action<int> action)
+        public void Send(byte[] sendData, Action<int> length)
         {
             AsyncSendState state = new AsyncSendState
             {
-                Action = action,
                 AsyncSocket = Socket,
+                SendLength = length,
                 SendBuffer = sendData
             };
 
             try
             {
-                Socket.BeginSend(sendData, 0, length, SocketFlags.None, new AsyncCallback(SendCallBack), state);
+                Socket.BeginSend(sendData, 0, sendData.Length, SocketFlags.None, new AsyncCallback(SendCallBack), state);
             }
             catch ( Exception exception)
             {
@@ -204,7 +184,7 @@ namespace EasySocket.Core.Networks
 
                 int sendSize = state.AsyncSocket.EndSend(ar);
 
-                state.Action(sendSize);
+                state.SendLength(sendSize);
             }
             catch (Exception exception)
             {
@@ -248,12 +228,12 @@ namespace EasySocket.Core.Networks
 
         public string ToRemoteLog()
         {
-            return String.Format("id:{0} [{1}]->[{2}]", socketId, Socket.LocalEndPoint, Socket.RemoteEndPoint);
+            return $"id:{socketId} [{Socket.LocalEndPoint}]->[{Socket.RemoteEndPoint}]";
         }
 
         public string ToLocalLog()
         {
-            return String.Format("id:{0} [{1}]->[{2}]", socketId, Socket.RemoteEndPoint, Socket.LocalEndPoint);
+            return $"id:{socketId} [{Socket.RemoteEndPoint}]->[{Socket.LocalEndPoint}]";
         }
 
     }
