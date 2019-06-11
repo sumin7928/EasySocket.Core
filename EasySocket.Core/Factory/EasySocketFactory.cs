@@ -6,32 +6,32 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 
-namespace EasySocket.Core
+namespace EasySocket.Core.Factory
 {
-    public class EasyCore
+    public class EasySocketFactory
     {
         /// <summary>
         /// create server with default options.
         /// </summary>
-        public static IEasyServer CreateServer()
+        public static IEasySocketServer CreateServer()
         {
-            return new EasyServer( new ServerOptions() );
+            return new EasySocketServer( new ServerOptions() );
         }
 
         /// <summary>
         /// create server with custom options.
         /// </summary>
         /// <param name="options"> TcpServerOptions </param>
-        public static IEasyServer CreateServer(ServerOptions options)
+        public static IEasySocketServer CreateServer(ServerOptions options)
         {
-            return new EasyServer( options );
+            return new EasySocketServer( options );
         }
 
         /// <summary>
         /// create server with custom options.
         /// </summary>
         /// <param name="options"> TcpServerOptions </param>
-        public static IEasyServer CreateServer( IConfiguration config, string section = "EasySocketServer" )
+        public static IEasySocketServer CreateServer( IConfiguration config, string section = "EasySocketServer" )
         {
             IConfigurationSection configurationSection = config.GetSection( section );
             ServerOptions serverOptions = new ServerOptions();
@@ -76,27 +76,27 @@ namespace EasySocket.Core
                 serverOptions.Linger = lingerOption;
             }
 
-            return new EasyServer( serverOptions );
+            return new EasySocketServer( serverOptions );
         }
 
         /// <summary>
         /// create client with default options.
         /// </summary>
-        public static IEasyClient CreateClient()
+        public static IEasySocketClient CreateClient()
         {
-            return new EasyClient( new ClientOptions() );
+            return new EasySocketClient( new ClientOptions() );
         }
 
         /// <summary>
         /// create client with custom options.
         /// </summary>
         /// <param name="options"> TcpClientOptions </param>
-        public static IEasyClient CreateClient( ClientOptions options )
+        public static IEasySocketClient CreateClient( ClientOptions options )
         {
-            return new EasyClient( options);
+            return new EasySocketClient( options);
         }
 
-        public static IEasyClient CreateClient( IConfiguration config, string section = "EasySocketClient" )
+        public static IEasySocketClient CreateClient( IConfiguration config, string section = "EasySocketClient" )
         {
             IConfigurationSection configurationSection = config.GetSection( section );
             ClientOptions clientOptions = new ClientOptions();
@@ -125,7 +125,7 @@ namespace EasySocket.Core
                 clientOptions.NoDelay = bool.Parse( configurationSection[ "NoDelay" ] );
             }
 
-            return new EasyClient( clientOptions );
+            return new EasySocketClient( clientOptions );
         }
 
     }

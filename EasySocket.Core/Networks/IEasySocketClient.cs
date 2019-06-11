@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EasySocket.Core.Networks
 {
-    public interface IEasyClient
+    public interface IEasySocketClient
     {
         /// <summary>
         /// 클라이언트 생성 시 설정된 옵션정보로 host와 port에 connection 요청을 진행한다.

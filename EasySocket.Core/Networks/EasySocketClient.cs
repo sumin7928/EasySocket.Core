@@ -6,14 +6,14 @@ using System.Text;
 
 namespace EasySocket.Core.Networks
 {
-    class EasyClient : IEasyClient
+    class EasySocketClient : IEasySocketClient
     {
         private readonly ClientOptions options;
 
         private Action<IEasySocket> connectAction;
         private Action<Exception> exceptionAction;
 
-        public EasyClient(ClientOptions options)
+        public EasySocketClient(ClientOptions options)
         {
             this.options = options;
         }

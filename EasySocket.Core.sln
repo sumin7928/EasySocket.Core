@@ -3,14 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySocket.Core", "EasySocket.Core\EasySocket.Core.csproj", "{C1FB63C7-58EC-4909-9BF3-41D839F1B2FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySocket.Core", "EasySocket.Core\EasySocket.Core.csproj", "{C1FB63C7-58EC-4909-9BF3-41D839F1B2FF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B3E97DDD-D6BC-4A4E-B6CB-AE74274ED4BF}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		CHANGELOG.md = CHANGELOG.md
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySocket.Core.Tests", "EasySocket.Core.Tests\EasySocket.Core.Tests.csproj", "{42C78527-CFA3-4319-953C-4E303A87BB41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySocket.Core.Tests", "EasySocket.Core.Tests\EasySocket.Core.Tests.csproj", "{42C78527-CFA3-4319-953C-4E303A87BB41}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

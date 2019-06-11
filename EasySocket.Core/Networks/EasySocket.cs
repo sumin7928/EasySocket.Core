@@ -1,4 +1,4 @@
-﻿using EasySocket.Core.Networks.AsyncState;
+using EasySocket.Core.Networks.AsyncState;
 using EasySocket.Core.Options;
 using System;
 using System.Collections.Generic;
@@ -29,30 +29,30 @@ namespace EasySocket.Core.Networks
 
         public int IdleTimeout { get; set; }
 
-        public EasySocket( string socketId, Socket socket, ServerOptions serverOptions )
+        public EasySocket(string socketId, Socket socket, ServerOptions serverOptions)
         {
             this.socketId = socketId;
             Socket = socket;
 
             IdleTimeout = serverOptions.IdleTimeout;
 
-            if ( serverOptions.IdleTimeout > 0 )
+            if (serverOptions.IdleTimeout > 0)
             {
-                idleTimeoutTimer = new Timer( ( timeout ) =>
-                {
-                    idleTimeoutAction?.Invoke( socketId );
-                } );
-                idleTimeoutTimer.Change( serverOptions.IdleTimeout, Timeout.Infinite );
+                idleTimeoutTimer = new Timer((timeout) =>
+               {
+                   idleTimeoutAction?.Invoke(socketId);
+               });
+                idleTimeoutTimer.Change(serverOptions.IdleTimeout, Timeout.Infinite);
             }
         }
 
-        public EasySocket(string socketId, Socket socket, ClientOptions clientOptions )
+        public EasySocket(string socketId, Socket socket, ClientOptions clientOptions)
         {
             this.socketId = socketId;
             Socket = socket;
             ReadTimeout = clientOptions.ReadTimeout;
 
-            if( clientOptions.ReadTimeout > 0)
+            if (clientOptions.ReadTimeout > 0)
             {
                 readTimeoutTImer = new Timer((timeout) =>
                 {
@@ -84,7 +84,7 @@ namespace EasySocket.Core.Networks
             {
                 exceptionAction?.Invoke(exception);
 
-                if(!Socket.Connected)
+                if (!Socket.Connected)
                 {
                     closedAction?.Invoke(socketId);
                 }
@@ -98,7 +98,7 @@ namespace EasySocket.Core.Networks
                 AsyncReceiveState state = (AsyncReceiveState)ar.AsyncState;
 
                 Socket socket = state.AsyncSocket;
-                if(!socket.Connected)
+                if (!socket.Connected)
                 {
                     closedAction?.Invoke(socketId);
                     return;
@@ -149,6 +149,11 @@ namespace EasySocket.Core.Networks
 
         public void Send(byte[] sendData, Action<int> length)
         {
+            Send(sendData, 0, sendData.Length, length);
+        }
+
+        public void Send(byte[] sendData, int offset, int size, Action<int> length)
+        {
             AsyncSendState state = new AsyncSendState
             {
                 AsyncSocket = Socket,
@@ -158,9 +163,9 @@ namespace EasySocket.Core.Networks
 
             try
             {
-                Socket.BeginSend(sendData, 0, sendData.Length, SocketFlags.None, new AsyncCallback(SendCallBack), state);
+                Socket.BeginSend(sendData, offset, size, SocketFlags.None, new AsyncCallback(SendCallBack), state);
             }
-            catch ( Exception exception)
+            catch (Exception exception)
             {
                 exceptionAction?.Invoke(exception);
 
@@ -199,7 +204,7 @@ namespace EasySocket.Core.Networks
 
         public void Close()
         {
-            if(Socket.Connected)
+            if (Socket.Connected)
             {
                 Socket.Shutdown(SocketShutdown.Both);
                 Socket.Close();

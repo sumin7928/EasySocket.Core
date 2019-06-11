@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace EasySocket.Core.Networks
 {
-    public interface IEasyServer
+    public interface IEasySocketServer
     {
         /// <summary>
         /// Accept가 발생할 때 Connection Handler 로 소켓 정보를 전달한다.
@@ -23,6 +23,19 @@ namespace EasySocket.Core.Networks
         /// <summary>
         /// 설정된 서버 정보로 서버를 구동한다.
         /// </summary>
-        Task Listen();
+        void Run();
+
+        /// <summary>
+        /// 설정된 서버 정보로 서버를 구동한다.
+        /// </summary>
+        /// <param name="port">서버 포트 정보</param>
+        /// <returns></returns>
+        void Run(int port);
+
+        /// <summary>
+        /// 구동된 서버를 중지한다.
+        /// </summary>
+        void Stop();
+
     }
 }
