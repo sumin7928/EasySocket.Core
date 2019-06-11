@@ -1,5 +1,7 @@
 ﻿# EasySocket
 
+![Nuget](https://img.shields.io/nuget/v/EasySocket.Core.svg) ![Nuget](https://img.shields.io/nuget/dt/EasySocket.Core.svg)
+
 ## Introduction
 
 - 네트워크 비전문가도 TCP 네트워크 통신을 쉽게 구현할 수 있게 간략한 인터페이스만 제공하며 꼭 필요한 부분에 있어서는 내부 접근을 허용해 범용성을 가졌다.
