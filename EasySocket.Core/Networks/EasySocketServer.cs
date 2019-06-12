@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 using EasySocket.Core.Options;
+using EasySocket.Core.Utils;
 
 namespace EasySocket.Core.Networks
 {
@@ -15,7 +16,7 @@ namespace EasySocket.Core.Networks
 
         private Action<IEasySocket> _connectAction;
         private Action<Exception> _exceptionAction;
-        private TcpListener _tcpListener; 
+        private TcpListener _tcpListener;
         private bool _acceptLoop = true;
 
         public EasySocketServer(ServerOptions options)
@@ -50,7 +51,7 @@ namespace EasySocket.Core.Networks
                     while (_acceptLoop)
                     {
                         Socket socket = await _tcpListener.AcceptSocketAsync();
-                        string socketId = Guid.NewGuid().ToString();
+                        string socketId = KeyGenerator.GetServerSocketId();
                         _connectAction(new EasySocket(socketId, socket, _options));
                     }
                 });

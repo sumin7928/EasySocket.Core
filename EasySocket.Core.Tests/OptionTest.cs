@@ -22,7 +22,7 @@ namespace EasySocket.Core.Tests
         }
 
         [Fact]
-        public async Task IdleTimeoutTest()
+        public void IdleTimeoutTest()
         {
             bool timeout = false;
             int targetPort = 15000;
@@ -32,6 +32,7 @@ namespace EasySocket.Core.Tests
             options.IdleTimeout = 800;
 
             var server = EasySocketFactory.CreateServer(options);
+            var countdownEvent = new CountdownEvent(1);
 
             server.ConnectHandler(socket =>
             {
@@ -39,6 +40,7 @@ namespace EasySocket.Core.Tests
                 {
                     _output.WriteLine("server socket idle timeout - id: " + clientId);
                     timeout = true;
+                    countdownEvent.Signal();
                 });
                 socket.CloseHandler(clientId =>
                 {
@@ -85,12 +87,12 @@ namespace EasySocket.Core.Tests
 
             client.Connect("127.0.0.1", targetPort);
 
-            await Task.Delay(asyncDelayTime);
+            countdownEvent.Wait(asyncDelayTime);
             Assert.True(timeout);
         }
 
         [Fact]
-        public async Task IdleTimeoutTestWithAlive()
+        public void IdleTimeoutTestWithAlive()
         {
             bool timeout = false;
             int targetPort = 15001;
@@ -100,12 +102,15 @@ namespace EasySocket.Core.Tests
             options.IdleTimeout = 800;
 
             var server = EasySocketFactory.CreateServer(options);
+            var countdownEvent = new CountdownEvent(1);
+
             server.ConnectHandler(socket =>
             {
                 socket.IdleTimeoutHandler(clientId =>
                 {
                     _output.WriteLine("server socket idle timeout - id: " + clientId);
                     timeout = true;
+                    countdownEvent.Signal();
                 });
                 socket.CloseHandler(clientId =>
                 {
@@ -173,13 +178,13 @@ namespace EasySocket.Core.Tests
 
             client.Connect("127.0.0.1", targetPort);
 
-            await Task.Delay(asyncDelayTime);
+            countdownEvent.Wait(asyncDelayTime);
             Assert.False(timeout);
 
         }
 
         [Fact]
-        public async Task ReadTimeoutTest()
+        public void ReadTimeoutTest()
         {
             bool timeout = false;
             int targetPort = 15002;
@@ -188,6 +193,8 @@ namespace EasySocket.Core.Tests
             options.Port = targetPort;
 
             var server = EasySocketFactory.CreateServer(options);
+            var countdownEvent = new CountdownEvent(1);
+
             server.ConnectHandler(socket =>
             {
                 socket.CloseHandler(clientId =>
@@ -231,6 +238,7 @@ namespace EasySocket.Core.Tests
                 {
                     _output.WriteLine("client socket read timeout - id: " + clientId);
                     timeout = true;
+                    countdownEvent.Signal();
                 });
 
                 socket.CloseHandler(clientId =>
@@ -251,7 +259,7 @@ namespace EasySocket.Core.Tests
 
             client.Connect("127.0.0.1", targetPort);
 
-            await Task.Delay(asyncDelayTime);
+            countdownEvent.Wait(asyncDelayTime);
             Assert.True(timeout);
         }
     }

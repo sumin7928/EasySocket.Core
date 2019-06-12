@@ -1,4 +1,5 @@
-﻿using EasySocket.Core.Options;
+using EasySocket.Core.Options;
+using EasySocket.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -25,7 +26,7 @@ namespace EasySocket.Core.Networks
 
         public void Connect(string host, int port)
         {
-            if( connectAction == null )
+            if (connectAction == null)
             {
                 throw new InvalidOperationException("Not found connect action logic");
             }
@@ -40,9 +41,9 @@ namespace EasySocket.Core.Networks
 
             socket.EndConnect(ar);
 
-            var socketId = Guid.NewGuid().ToString();
+            var socketId = KeyGenerator.GetClientSocketId();
 
-            var tcpSocket = new EasySocket(socketId, socket, options );
+            var tcpSocket = new EasySocket(socketId, socket, options);
 
             connectAction(tcpSocket);
 
@@ -57,8 +58,5 @@ namespace EasySocket.Core.Networks
         {
             exceptionAction = action;
         }
-
-
-
     }
 }

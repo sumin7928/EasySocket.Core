@@ -14,7 +14,7 @@ namespace EasySocket.Core.Factory
         /// </summary>
         public static IEasySocketServer CreateServer()
         {
-            return new EasySocketServer( new ServerOptions() );
+            return new EasySocketServer(new ServerOptions());
         }
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace EasySocket.Core.Factory
         /// <param name="options"> TcpServerOptions </param>
         public static IEasySocketServer CreateServer(ServerOptions options)
         {
-            return new EasySocketServer( options );
+            return new EasySocketServer(options);
         }
 
         /// <summary>
@@ -31,16 +31,16 @@ namespace EasySocket.Core.Factory
         /// </summary>
         public static IEasySocketClient CreateClient()
         {
-            return new EasySocketClient( new ClientOptions() );
+            return new EasySocketClient(new ClientOptions());
         }
 
         /// <summary>
         /// create client with custom options.
         /// </summary>
         /// <param name="options"> TcpClientOptions </param>
-        public static IEasySocketClient CreateClient( ClientOptions options )
+        public static IEasySocketClient CreateClient(ClientOptions options)
         {
-            return new EasySocketClient( options);
+            return new EasySocketClient(options);
         }
     }
 }

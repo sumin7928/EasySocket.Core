@@ -1,4 +1,4 @@
-﻿# EasySocket
+﻿# EasySocket.Core
 
 ![Nuget](https://img.shields.io/nuget/v/EasySocket.Core.svg) ![Nuget](https://img.shields.io/nuget/dt/EasySocket.Core.svg)
 

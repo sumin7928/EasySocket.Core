@@ -27,7 +27,7 @@ namespace EasySocket.Core.Tests
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ClosedSocketFromServer()
+        public void ClosedSocketFromServer()
         {
             string data = "testData";
             bool closed = false;
@@ -63,6 +63,8 @@ namespace EasySocket.Core.Tests
             server.Run(targetPort);
 
             var client = EasySocketFactory.CreateClient();
+            var countdownEvent = new CountdownEvent(1);
+
             client.ConnectHandler(socket =>
             {
                 byte[] sendData = Encoding.UTF8.GetBytes(data);
@@ -82,6 +84,7 @@ namespace EasySocket.Core.Tests
                 {
                     _output.WriteLine("client closed socket - id: " + clientId);
                     closed = true;
+                    countdownEvent.Signal();
                 });
 
                 socket.ExceptionHandler(exception =>
@@ -95,33 +98,33 @@ namespace EasySocket.Core.Tests
             });
             client.Connect("127.0.0.1", targetPort);
 
-            await Task.Delay(DelayTime);
+            countdownEvent.Wait(DelayTime);
             server.Stop();
-
             Assert.True(closed);
         }
 
-        // 클라에서 끊겼을 경우
-        // 서버에서 정상 패킷을 수신한 후 클라에게 응답을 보냈는데 클라에서는 Send 후 바로 Close 시킨 상황이라 비정상 예외( Socket이 Closed 되었는데 처리)가 발생하는 테스트
         /// <summary>
         /// 클라에서 끊겼을 경우
         /// 서버에서 정상 패킷을 수신한 후 정상 응답을 보냈는데 클라에서는 Send 후 바로 Close 시킨 상황이라 비정상 예외가 발생하는 테스트
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ClosedSocketFromClient()
+        public void ClosedSocketFromClient()
         {
             string data = "testData";
             bool closed = false;
             int targetPort = 10001;
 
             var server = EasySocketFactory.CreateServer();
+            var countdownEvent = new CountdownEvent(1);
+
             server.ConnectHandler(socket =>
             {
                 socket.CloseHandler(clientId =>
                 {
                     _output.WriteLine("server closed socket - id: " + clientId);
                     closed = true;
+                    countdownEvent.Signal();
                 });
 
                 socket.ExceptionHandler(exception =>
@@ -138,7 +141,6 @@ namespace EasySocket.Core.Tests
                         _output.WriteLine("server completed send - size : " + sendSize);
 
                     });
-
                 });
             });
             server.ExceptionHandler(exception =>
@@ -164,7 +166,6 @@ namespace EasySocket.Core.Tests
 
                     // close
                     socket.Close();
-
                 });
 
                 socket.CloseHandler(clientId =>
@@ -185,7 +186,7 @@ namespace EasySocket.Core.Tests
 
             client.Connect("127.0.0.1", targetPort);
 
-            await Task.Delay(DelayTime);
+            countdownEvent.Wait(DelayTime);
             server.Stop();
 
             Assert.True(closed);

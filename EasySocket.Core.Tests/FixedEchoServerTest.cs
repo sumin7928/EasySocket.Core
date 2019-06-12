@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using EasySocket.Core.Factory;
+using EasySocket.Core.Networks.Support;
 using EasySocket.Core.Tests.Fixture;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,12 +26,12 @@ namespace EasySocket.Core.Tests
         }
 
         [Fact]
-        public async Task FixedEchoTest()
+        public void FixedEchoTest()
         {
-            int port = FixedEchoServerFixture.FixedEchoServerPort;
+            int port = FixedEchoServerFixture.LittleEndianFixedEchoServerPort;
             string data = "testData";
+            string response = "";
 
-            int totalLengthOffset = 0;
             int totalLengthSize = 4;
 
             MemoryStream stream = new MemoryStream();
@@ -37,48 +39,45 @@ namespace EasySocket.Core.Tests
             byte[] databyte = Encoding.UTF8.GetBytes(data);
             stream.Write(Encoding.UTF8.GetBytes(data), 0, data.Length);
 
-            string response = "";
+            var client = EasySocketFactory.CreateClient();
+            var countdownEvent = new CountdownEvent(1);
 
-            var result = Task.Run(() =>
+            client.ConnectHandler(socket =>
             {
-                var client = EasySocketFactory.CreateClient();
+                byte[] sendData = stream.ToArray();
 
-                client.ConnectHandler(socket =>
+                socket.Send(sendData, sendSize =>
                 {
-                    byte[] sendData = stream.ToArray();
+                    _output.WriteLine("complete send - size : " + sendSize);
 
-                    socket.Send(sendData, sendSize =>
-                    {
-                        Console.WriteLine("complete send - size : " + sendSize);
-
-                    });
-
-                    socket.Receive(totalLengthOffset, totalLengthSize, receivedData =>
-                    {
-                        response = Encoding.UTF8.GetString(receivedData, totalLengthSize, receivedData.Length - totalLengthSize);
-                        Console.WriteLine("complete receive - size : " + receivedData.Length);
-                    });
                 });
 
-                client.ExceptionHandler(exception =>
+                socket.Receive(new TotalLengthObject(), receivedData =>
                 {
-                    Console.WriteLine("received socket exception" + exception);
+                    response = Encoding.UTF8.GetString(receivedData, totalLengthSize, receivedData.Length - totalLengthSize);
+                    _output.WriteLine("complete receive - size : " + receivedData.Length);
+                    countdownEvent.Signal();
                 });
-
-                client.Connect("127.0.0.1", port);
             });
 
-            await Task.Delay(AsyncDelayTime);
+            client.ExceptionHandler(exception =>
+            {
+                _output.WriteLine("received socket exception" + exception);
+            });
+
+            client.Connect("127.0.0.1", port);
+
+            countdownEvent.Wait(AsyncDelayTime);
             Assert.Equal(data, response);
         }
 
         [Fact]
-        public async Task FixedEchoCuttedPacketTest()
+        public void FixedEchoCuttedPacketTest()
         {
-            int port = FixedEchoServerFixture.FixedEchoServerPort;
+            int port = FixedEchoServerFixture.LittleEndianFixedEchoServerPort;
             string data = "testData";
+            string response = "";
 
-            int totalLengthOffset = 0;
             int totalLengthSize = 4;
 
             MemoryStream stream = new MemoryStream();
@@ -86,57 +85,54 @@ namespace EasySocket.Core.Tests
             byte[] databyte = Encoding.UTF8.GetBytes(data);
             stream.Write(Encoding.UTF8.GetBytes(data), 0, data.Length);
 
-            string response = "";
+            var client = EasySocketFactory.CreateClient();
+            var countdownEvent = new CountdownEvent(2);
 
-            var result = Task.Run(() =>
+            client.ConnectHandler(socket =>
             {
-                var client = EasySocketFactory.CreateClient();
+                byte[] sendData = stream.ToArray();
 
-                client.ConnectHandler(socket =>
+                byte[] firstData = sendData.Take(6).ToArray();
+                byte[] secondData = sendData.Skip(firstData.Length).Take(sendData.Length - firstData.Length).ToArray();
+
+                socket.Send(firstData, sendSize =>
                 {
-                    byte[] sendData = stream.ToArray();
+                    _output.WriteLine("complete send - size : " + sendSize);
 
-                    byte[] firstData = sendData.Take(6).ToArray();
-                    byte[] secondData = sendData.Skip(firstData.Length).Take(sendData.Length - firstData.Length).ToArray();
-
-                    socket.Send(firstData, sendSize =>
-                    {
-                        Console.WriteLine("complete send - size : " + sendSize);
-
-                    });
-
-                    socket.Send(secondData, sendSize =>
-                    {
-                        Console.WriteLine("complete send - size : " + sendSize);
-
-                    });
-
-                    socket.Receive(totalLengthOffset, totalLengthSize, receivedData =>
-                    {
-                        response = Encoding.UTF8.GetString(receivedData, totalLengthSize, receivedData.Length - totalLengthSize);
-                        Console.WriteLine("complete receive - size : " + receivedData.Length);
-                    });
                 });
 
-                client.ExceptionHandler(exception =>
+                socket.Send(secondData, sendSize =>
                 {
-                    Console.WriteLine("received socket exception" + exception);
+                    _output.WriteLine("complete send - size : " + sendSize);
+
                 });
 
-                client.Connect("127.0.0.1", port);
+                socket.Receive(new TotalLengthObject(), receivedData =>
+                {
+                    response = Encoding.UTF8.GetString(receivedData, totalLengthSize, receivedData.Length - totalLengthSize);
+                    _output.WriteLine("complete receive - size : " + receivedData.Length);
+                    countdownEvent.Signal();
+                });
             });
 
-            await Task.Delay(AsyncDelayTime);
+            client.ExceptionHandler(exception =>
+            {
+                _output.WriteLine("received socket exception" + exception);
+            });
+
+            client.Connect("127.0.0.1", port);
+
+            countdownEvent.Wait(AsyncDelayTime);
             Assert.Equal(data, response);
         }
 
         [Fact]
-        public async Task FixedEchoOverloadPacketTest()
+        public void FixedEchoOverloadPacketTest()
         {
-            int port = FixedEchoServerFixture.FixedEchoServerPort;
+            int port = FixedEchoServerFixture.LittleEndianFixedEchoServerPort;
             string data = "testData";
+            string response = "";
 
-            int totalLengthOffset = 0;
             int totalLengthSize = 4;
             int overloadCount = 2;
 
@@ -148,39 +144,94 @@ namespace EasySocket.Core.Tests
                 stream.Write(Encoding.UTF8.GetBytes(data), 0, data.Length);
             }
 
-            string response = "";
+            var client = EasySocketFactory.CreateClient();
+            var countdownEvent = new CountdownEvent(2);
 
-            var result = Task.Run(() =>
+            client.ConnectHandler(socket =>
             {
-                var client = EasySocketFactory.CreateClient();
+                byte[] sendData = stream.ToArray();
 
-                client.ConnectHandler(socket =>
+                socket.Send(sendData, sendSize =>
                 {
-                    byte[] sendData = stream.ToArray();
+                    _output.WriteLine("complete send - size : " + sendSize);
 
-                    socket.Send(sendData, sendSize =>
-                    {
-                        Console.WriteLine("complete send - size : " + sendSize);
-
-                    });
-
-                    socket.Receive(totalLengthOffset, totalLengthSize, receivedData =>
-                    {
-                        response += Encoding.UTF8.GetString(receivedData, totalLengthSize, receivedData.Length - totalLengthSize);
-                        Console.WriteLine("complete receive - size : " + receivedData.Length);
-                    });
                 });
 
-                client.ExceptionHandler(exception =>
+                socket.Receive(new TotalLengthObject(), receivedData =>
                 {
-                    Console.WriteLine("received socket exception" + exception);
+                    response += Encoding.UTF8.GetString(receivedData, totalLengthSize, receivedData.Length - totalLengthSize);
+                    _output.WriteLine("complete receive - size : " + receivedData.Length);
+                    countdownEvent.Signal();
                 });
-
-                client.Connect("127.0.0.1", port);
             });
 
-            await Task.Delay(AsyncDelayTime);
+            client.ExceptionHandler(exception =>
+            {
+                _output.WriteLine("received socket exception" + exception);
+            });
+
+            client.Connect("127.0.0.1", port);
+
+            countdownEvent.Wait(AsyncDelayTime);
             Assert.Equal(data + data, response);
+        }
+
+        [Fact]
+        public void FixedEchoTestForBigEndian()
+        {
+            int port = FixedEchoServerFixture.BigEndianFixedEchoServerPort;
+            string data = "testData";
+            string response = "";
+
+            int totalLengthSize = 4;
+
+            MemoryStream stream = new MemoryStream();
+            byte[] totalLength = BitConverter.GetBytes(data.Length + totalLengthSize);
+            Array.Reverse(totalLength);
+            stream.Write(totalLength, 0, totalLengthSize);
+            byte[] databyte = Encoding.UTF8.GetBytes(data);
+            stream.Write(Encoding.UTF8.GetBytes(data), 0, data.Length);
+
+            var client = EasySocketFactory.CreateClient();
+            var countdownEvent = new CountdownEvent(1);
+
+            client.ConnectHandler(socket =>
+            {
+                byte[] sendData = stream.ToArray();
+
+                socket.Send(sendData, sendSize =>
+                {
+                    _output.WriteLine("complete send - size : " + sendSize);
+
+                });
+
+                var totalLengthObject = new TotalLengthObject
+                {
+                    IsBigEndian = true
+                };
+                socket.Receive(totalLengthObject, receivedData =>
+                {
+                    byte[] length = new byte[4];
+                    Array.Copy(receivedData, length, 4);
+                    Array.Reverse(length);
+
+                    int resultLength = BitConverter.ToInt32(length);
+                    Assert.Equal(data.Length + totalLengthSize, resultLength);
+                    response = Encoding.UTF8.GetString(receivedData, totalLengthSize, receivedData.Length - totalLengthSize);
+                    _output.WriteLine("complete receive - size : " + receivedData.Length);
+                    countdownEvent.Signal();
+                });
+            });
+
+            client.ExceptionHandler(exception =>
+            {
+                _output.WriteLine("received socket exception" + exception);
+            });
+
+            client.Connect("127.0.0.1", port);
+
+            countdownEvent.Wait(AsyncDelayTime);
+            Assert.Equal(data, response);
         }
     }
 }

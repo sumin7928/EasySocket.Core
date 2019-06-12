@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
+using EasySocket.Core.Networks.Support;
 
 namespace EasySocket.Core.Networks
 {
@@ -16,10 +17,9 @@ namespace EasySocket.Core.Networks
         /// <summary>
         /// 비동기로 socket receive 처리 구현, action handler로 지정된 패킷 총 길이 만큼 byte[]을 받는다.
         /// </summary>
-        /// <param name="offset">패킷 총 길이에 해당하는 binary offset 지정.</param>
-        /// <param name="length">패킷 총 길이에 해당하는 binary size 지정.</param>
+        /// <param name="totalLengthObject ">패킷 총길이에 따른 처리 설정 지정 오프젝트</param>
         /// <param name="receiveBuffer">패킷 byte[]을 받는 handler.</param>
-        void Receive(int offset, int length, Action<byte[]> receiveBuffer);
+        void Receive(TotalLengthObject totalLengthObject, Action<byte[]> receiveBuffer);
 
         /// <summary>
         /// 비동기로 socket send 처리 구현, action handler로 보낸 총 바이트 수를 받는다.

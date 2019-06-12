@@ -1,6 +1,5 @@
 using EasySocket.Core.Factory;
 using EasySocket.Core.Tests.Fixture;
-using NPStandardTcpLibTest.Helper;
 using System;
 using System.IO;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace EasySocket.Core.Tests
     [Collection("EchoServer")]
     public class EchoServerTest
     {
-        private const int AsyncDelayTime = 1500;
+        private const int AsyncDelayTimeOut = 1500;
 
         private readonly ITestOutputHelper _output;
 
@@ -25,91 +24,86 @@ namespace EasySocket.Core.Tests
         }
 
         [Fact]
-        public async Task EchoTest()
+        public void EchoTest()
         {
             int port = EchoServerFixture.EchoServerPort;
             string data = "testData";
-            string response = "";
+            string message = "";
 
-            var result = Task.Run( () =>
+            var client = EasySocketFactory.CreateClient();
+            var countdownEvent = new CountdownEvent(1);
+
+            client.ConnectHandler(socket =>
             {
-                var client = EasySocketFactory.CreateClient();
+                byte[] sendData = Encoding.UTF8.GetBytes(data);
 
-                client.ConnectHandler(socket =>
+                socket.Send(sendData, sendSize =>
                 {
-                    byte[] sendData = Encoding.UTF8.GetBytes(data);
-
-                    socket.Send(sendData, sendSize =>
-                    {
-                        _output.WriteLine("complete send - size : " + sendSize);
-
-                    });
-
-                    socket.Receive(receivedData =>
-                    {
-                        response = Encoding.UTF8.GetString(receivedData);
-                        _output.WriteLine("complete receive - size : " + receivedData.Length);
-                    });
+                    _output.WriteLine("complete send - size : " + sendSize);
                 });
 
-                client.ExceptionHandler(exception =>
+                socket.Receive(receivedData =>
                 {
-                    _output.WriteLine("received socket exception" + exception);
+                    _output.WriteLine("complete receive - size : " + receivedData.Length);
+                    message = Encoding.UTF8.GetString(receivedData);
+                    countdownEvent.Signal();
                 });
-
-                client.Connect( "127.0.0.1", port);
             });
 
-            await Task.Delay(AsyncDelayTime);
-            Assert.Equal(data, response);
+            client.ExceptionHandler(exception =>
+            {
+                _output.WriteLine("received socket exception" + exception);
+            });
+
+            client.Connect("127.0.0.1", port);
+            countdownEvent.Wait(AsyncDelayTimeOut);
+            Assert.Equal(data, message);
         }
 
         [Fact]
-        public async Task EchoCuttedPacketTest()
+        public void EchoCuttedSendPacketTest()
         {
             int port = EchoServerFixture.EchoServerPort;
             string firstData = "test";
             string secondData = "Data";
             string response = "";
 
-            var result = Task.Run(() =>
+            var client = EasySocketFactory.CreateClient();
+            var countdownEvent = new CountdownEvent(2);
+
+            client.ConnectHandler(socket =>
             {
-                var client = EasySocketFactory.CreateClient();
+                byte[] firstSendData = Encoding.UTF8.GetBytes(firstData);
 
-                client.ConnectHandler(socket =>
+                socket.Send(firstSendData, sendSize =>
                 {
-                    byte[] firstSendData = Encoding.UTF8.GetBytes(firstData);
+                    _output.WriteLine("complete send - data:{0}, size:{1}", Encoding.UTF8.GetString(firstSendData), sendSize);
 
-                    socket.Send(firstSendData, sendSize =>
-                    {
-                        _output.WriteLine("complete send - size : {0}", sendSize);
-
-                    });
-
-                    byte[] secondSendData = Encoding.UTF8.GetBytes(secondData);
-
-                    socket.Send(secondSendData, sendSize =>
-                    {
-                        _output.WriteLine("complete send - size : {0}", sendSize);
-
-                    });
-
-                    socket.Receive(receivedData =>
-                    {
-                        response += Encoding.UTF8.GetString(receivedData);
-                        _output.WriteLine("complete receive - size : {0}", receivedData.Length);
-                    });
                 });
 
-                client.ExceptionHandler(exception =>
+                byte[] secondSendData = Encoding.UTF8.GetBytes(secondData);
+
+                socket.Send(secondSendData, sendSize =>
                 {
-                    _output.WriteLine("received socket exception" + exception);
+                    _output.WriteLine("complete send - data:{0}, size:{1}", Encoding.UTF8.GetString(secondSendData), sendSize);
                 });
 
-                client.Connect("127.0.0.1", port);
+                socket.Receive(receivedData =>
+                {
+                    string data = Encoding.UTF8.GetString(receivedData);
+                    _output.WriteLine("complete receive - data:{0}, size:{1}", data, data.Length);
+                    response += data;
+                    countdownEvent.Signal();
+                });
             });
 
-            await Task.Delay(AsyncDelayTime);
+            client.ExceptionHandler(exception =>
+            {
+                _output.WriteLine("received socket exception" + exception);
+            });
+
+            client.Connect("127.0.0.1", port);
+            countdownEvent.Wait(AsyncDelayTimeOut);
             Assert.Equal(firstData + secondData, response);
         }
     }

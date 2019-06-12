@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using EasySocket.Core.Factory;
+using EasySocket.Core.Networks.Support;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -10,14 +11,20 @@ namespace EasySocket.Core.Tests.Fixture
 {
     public class FixedEchoServerFixture : IDisposable
     {
-        public const int FixedEchoServerPort = 14001;
+        public const int LittleEndianFixedEchoServerPort = 14001;
+        public const int BigEndianFixedEchoServerPort = 14002;
 
         public FixedEchoServerFixture()
         {
-            var server = EasySocketFactory.CreateServer();
-            server.ConnectHandler(socket =>
+            var littelEndianServer = EasySocketFactory.CreateServer();
+
+            littelEndianServer.ConnectHandler(socket =>
             {
-                socket.Receive(0, 4, receivedData =>
+                var totalLengthObject = new TotalLengthObject
+                {
+                    IsBigEndian = false
+                };
+                socket.Receive(totalLengthObject, receivedData =>
                 {
                     socket.Send(receivedData, sendSize =>
                     {
@@ -30,10 +37,36 @@ namespace EasySocket.Core.Tests.Fixture
                 {
                 });
             });
-            server.ExceptionHandler(exception =>
+            littelEndianServer.ExceptionHandler(exception =>
             {
             });
-            server.Run(FixedEchoServerPort);
+            littelEndianServer.Run(LittleEndianFixedEchoServerPort);
+
+            var bigEndianServer = EasySocketFactory.CreateServer();
+
+            bigEndianServer.ConnectHandler(socket =>
+            {
+                var totalLengthObject = new TotalLengthObject
+                {
+                    IsBigEndian = true
+                };
+                socket.Receive(totalLengthObject, receivedData =>
+                {
+                    socket.Send(receivedData, sendSize =>
+                    {
+                    });
+                });
+                socket.CloseHandler(clientId =>
+                {
+                });
+                socket.ExceptionHandler(exception =>
+                {
+                });
+            });
+            bigEndianServer.ExceptionHandler(exception =>
+            {
+            });
+            bigEndianServer.Run(BigEndianFixedEchoServerPort);
         }
 
         public void Dispose()
