@@ -2,11 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace EasySocket.Core.Networks
 {
     public interface IEasySocketServer
     {
+        /// <summary>
+        /// 사용되는 Logger를 지정한다.
+        /// </summary>
+        ILogger Logger { get; set; }
+
         /// <summary>
         /// Accept가 발생할 때 Connection Handler 로 소켓 정보를 전달한다.
         /// Notice : 반드시 ConnectionHandler 를 지정해야 서버가 구동이 된다.

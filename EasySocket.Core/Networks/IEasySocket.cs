@@ -3,11 +3,57 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using EasySocket.Core.Networks.Support;
+using EasySocket.Core.Options;
+using Microsoft.Extensions.Logging;
 
 namespace EasySocket.Core.Networks
 {
     public interface IEasySocket
     {
+        /// <summary>
+        /// Logger 정보를 가져올 수 있다.
+        /// </summary>
+        ILogger Logger { get; }
+
+        /// <summary>
+        /// 소켓 정보를 가져올 수 있다.
+        /// </summary>
+        Socket Socket { get; }
+
+        /// <summary>
+        /// 소켓 옵션을 가져올 수 있다.
+        /// </summary>
+        SocketOptions SocketOptions { get; }
+
+        /// <summary>
+        /// 추가 소켓 저장 정보를 위한 아이템(object) 저장소를 가져올 수 있다.
+        /// </summary>
+        Dictionary<object, object> Items { get; }
+
+        /// <summary>
+        /// 요청 후 응답 타임아웃 핸들러 지정.
+        /// </summary>
+        /// <param name="action">read timeout 발생 시 id를 받는 handler.</param>
+        void ReadTimeoutHandler(Action<string> action);
+
+        /// <summary>
+        /// idle 상태의 타임아웃 핸들러 지정.
+        /// </summary>
+        /// <param name="action">idle timeout 발생 시 id를 받는 handler.</param>
+        void IdleTimeoutHandler(Action<string> action);
+
+        /// <summary>
+        /// 소켓 close가 발생했을 때 처리를 위한 핸들러 지정.
+        /// </summary>
+        /// <param name="action">close 되었을 때 id를 받는 handler.</param>
+        void CloseHandler(Action<string> action);
+
+        /// <summary>
+        /// 소켓 excetion이 발생했을 때 처리를 위한 핸들러 지정.
+        /// </summary>
+        /// <param name="action">Exception을 받는 handler.</param>
+        void ExceptionHandler(Action<Exception> action);
+
         /// <summary>
         /// 비동기로 socket receive 처리 구현, action handler로 받은 데이터 그대로 넘겨준다.
         /// </summary>
@@ -42,33 +88,5 @@ namespace EasySocket.Core.Networks
         /// </summary>
         void Close();
 
-        /// <summary>
-        /// 요청 후 응답 타임아웃 핸들러 지정.
-        /// </summary>
-        /// <param name="action">read timeout 발생 시 id를 받는 handler.</param>
-        void ReadTimeoutHandler(Action<string> action);
-
-        /// <summary>
-        /// idle 상태의 타임아웃 핸들러 지정.
-        /// </summary>
-        /// <param name="action">idle timeout 발생 시 id를 받는 handler.</param>
-        void IdleTimeoutHandler(Action<string> action);
-
-        /// <summary>
-        /// 소켓 close가 발생했을 때 처리를 위한 핸들러 지정.
-        /// </summary>
-        /// <param name="action">close 되었을 때 id를 받는 handler.</param>
-        void CloseHandler(Action<string> action);
-
-        /// <summary>
-        /// 소켓 excetion이 발생했을 때 처리를 위한 핸들러 지정.
-        /// </summary>
-        /// <param name="action">Exception을 받는 handler.</param>
-        void ExceptionHandler(Action<Exception> action);
-
-        /// <summary>
-        /// 소켓 정보를 가져올 수 있음.
-        /// </summary>
-        Socket Socket { get; }
     }
 }

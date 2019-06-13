@@ -57,9 +57,6 @@ var server = EasySocketFactory.CreateServer(options);
 |--------------|---------------------|----------|
 | Host     | 서버 listen Host        | 127.0.0.1|
 | Port     | 서버 listen port        | 12000 |
-| IdleTimeout     | Idle 상태의 소켓 close 처리 타임아웃 | 900,000ms (15분) |
-| ReceiveBufferSize     | 소켓 receive buffer size | 2048 |
-| SendBufferSize     | 소켓 send buffer size | 2048 |
 | ListenBackLog     | 서버 listen 대기 큐 size | 128 |
 | NoDelay     | Nagle 알고리즘 사용 여부| true ( 사용 안함 ) |
 | Linger     | LingerOption 적용 처리 | LingerOption( true, 2 ) |
@@ -67,6 +64,7 @@ var server = EasySocketFactory.CreateServer(options);
 ##### IEasySocketServer
 
 ```
+ILogger Logger {get; set;}
 void ConnectHandler(Action<INPTcpSocket> action);
 void ExceptionHandler(Action<Exception> action);
 void Run();
@@ -139,14 +137,12 @@ var client = NPStandardTcp.CreateClient(options);
 |--------------|---------------------|----------|
 | Host     | 서버 주소 정보        | 127.0.0.1 |
 | Port     | 서버 포트 정보        | 12000 |
-| ReadTimeout     | 요청 수 응답대기 타임아웃 | 0 ( 없음 ) |
-| ReceiveBufferSize     | 소켓 receive buffer size | 2048 |
-| SendBufferSize     | 소켓 send buffer size | 2048 |
 | NoDelay     | Nagle 알고리즘 사용 여부| true ( 사용 안함 ) |
 
 ##### IEsaySocketClient
 
 ```
+ILogger Logger {get; set;}
 void Connect();
 void Connect(string host, int port);
 void ConnectHandler(Action<INPTcpSocket> action);
@@ -189,21 +185,32 @@ client.Connect();
 
 ### Socket
 
+##### SocketOptions
+
+| Options | Description | DefaultValue |  
+|--------------|---------------------|----------|
+| IdleTimeout     | Idle 상태의 소켓 close 처리 타임아웃 | Server:900,000ms (15분), Client:0 |
+| ReadTimeout     | 요청 수 응답대기 타임아웃 | Server:0, Client:300,000ms (5분) |
+| ReceiveBufferSize     | 소켓 receive buffer size | 2048 |
+| SendBufferSize     | 소켓 send buffer size | 2048 |
+
 ##### IEsaySocket
 
 ```
+ILogger Logger { get; }
 Socket Socket { get; }
+SocketOptions SocketOptions { get; }
+Dictionary<object, object> Items { get; }
 
-void Close();
+void ReadTimeoutHandler(Action<string> action);
+void IdleTimeoutHandler(Action<string> action);
 void CloseHandler(Action<string> action);
 void ExceptionHandler(Action<Exception> action);
-void ReadTimeoutHandler(Action<string> action);
-void idleTimeoutHandler(Action<string> action);
 void Receive(Action<byte[]> action);
-void Receive(int totalLengthOffet, int totalLengthSize, Action<byte[]> action);
-void Send(byte[] sendData, Action<int> action);
-void Send(byte[] sendData, int offset, int size, Action<int> action);
-
+void Receive(TotalLengthObject totalLengthObject, Action<byte[]> receiveBuffer);
+void Send(byte[] sendData, Action<int> length);
+void Send(byte[] sendData, int offset, int size, Action<int> length);
+void Close();
 ```
 
 ###### example
@@ -273,10 +280,12 @@ socket.Receive(receivedData =>
 });
 
 // receive fixed length packet
-int totalLengthOffset = 0;
-int totalLengthSize = 4;
+TotalLengthObject totalLengthObject = new TotalLengthObject();
+totalLengthObject.TotalLengthOffset = 0;
+totalLengthObject.TotalLengthSize = 4;
+totalLengthObject.IsBigEndian = false;
 
-socket.Receive(totalLengthOffset, totalLengthSize, receivedData =>
+socket.Receive(totalLengthObject, totalLengthSize, receivedData =>
 {
     // receivedData = socket received byte[] (fixed length)
     log.InfoFormat("complete receive - size : {0}", receivedData.Length);
@@ -291,6 +300,5 @@ socket.Close();
 
 ### Issue & Future
 
-- 현재 바이너리 처리 시 전송되는 패킷을 리틀 앤디안으로 판단해 따로 앤디안 처리가 들어가 있지 않은데 기본 네트워크 스팩인 빅앤디안 적용 시 구동되는 CPU에 따라 리틀앤디안 변환 과정이 필요함( 현재는 관련 로직 주석 처리 )
-
 - 서버 Run시에 Main Thread Block으로 프로세스가 종료되는 것을 막는걸 따로 구현 해야 함
+

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Net;
 using EasySocket.Core.Options;
 using EasySocket.Core.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace EasySocket.Core.Networks
 {
@@ -19,6 +20,8 @@ namespace EasySocket.Core.Networks
         private TcpListener _tcpListener;
         private bool _acceptLoop = true;
 
+        public ILogger Logger { get; set; }
+
         public EasySocketServer(ServerOptions options)
         {
             this._options = options;
@@ -27,11 +30,13 @@ namespace EasySocket.Core.Networks
         public void ConnectHandler(Action<IEasySocket> action)
         {
             _connectAction = action;
+            Logger?.LogDebug("[EasySocket Server] Add ConnectHandler");
         }
 
         public void ExceptionHandler(Action<Exception> action)
         {
             _exceptionAction = action;
+            Logger?.LogDebug("[EasySocket Server] Add ExceptionHandler");
         }
 
         public void Run(int port)
@@ -52,7 +57,9 @@ namespace EasySocket.Core.Networks
                     {
                         Socket socket = await _tcpListener.AcceptSocketAsync();
                         string socketId = KeyGenerator.GetServerSocketId();
-                        _connectAction(new EasySocket(socketId, socket, _options));
+                        Logger?.LogInformation("[{0}] Connected - [{1}] -> [{2}]", socketId, socket.RemoteEndPoint, socket.LocalEndPoint);
+
+                        _connectAction(new EasySocket(socketId, socket, Logger, _options));
                     }
                 });
             }
@@ -75,6 +82,7 @@ namespace EasySocket.Core.Networks
         {
             if (_connectAction == null)
             {
+                Logger?.LogError("[EasySocket Server] Not found connectHandler");
                 throw new InvalidOperationException("Not found connection action handler");
             }
 

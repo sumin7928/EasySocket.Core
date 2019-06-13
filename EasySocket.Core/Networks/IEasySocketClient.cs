@@ -1,11 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace EasySocket.Core.Networks
 {
     public interface IEasySocketClient
     {
+        /// <summary>
+        /// 사용되는 Logger를 지정한다.
+        /// </summary>
+        ILogger Logger { get; set; }
+
         /// <summary>
         /// 클라이언트 생성 시 설정된 옵션정보로 host와 port에 connection 요청을 진행한다.
         /// </summary>

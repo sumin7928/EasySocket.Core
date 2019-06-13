@@ -1,5 +1,6 @@
 using EasySocket.Core.Options;
 using EasySocket.Core.Utils;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -9,26 +10,29 @@ namespace EasySocket.Core.Networks
 {
     class EasySocketClient : IEasySocketClient
     {
-        private readonly ClientOptions options;
+        private readonly ClientOptions _options;
 
-        private Action<IEasySocket> connectAction;
-        private Action<Exception> exceptionAction;
+        private Action<IEasySocket> _connectAction;
+        private Action<Exception> _exceptionAction;
+
+        public ILogger Logger { get; set; }
 
         public EasySocketClient(ClientOptions options)
         {
-            this.options = options;
+            this._options = options;
         }
 
         public void Connect()
         {
-            Connect(options.Host, options.Port);
+            Connect(_options.Host, _options.Port);
         }
 
         public void Connect(string host, int port)
         {
-            if (connectAction == null)
+            if (_connectAction == null)
             {
-                throw new InvalidOperationException("Not found connect action logic");
+                Logger?.LogError("[EasySocket Client] Not found connectHandler");
+                throw new InvalidOperationException("Not found connectHandler");
             }
 
             var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -43,20 +47,22 @@ namespace EasySocket.Core.Networks
 
             var socketId = KeyGenerator.GetClientSocketId();
 
-            var tcpSocket = new EasySocket(socketId, socket, options);
+            var tcpSocket = new EasySocket(socketId, socket, Logger, _options);
+            Logger?.LogInformation("[{0}] Connected - [{1}] -> [{2}]", socketId, socket.LocalEndPoint, socket.RemoteEndPoint);
 
-            connectAction(tcpSocket);
-
+            _connectAction(tcpSocket);
         }
 
         public void ConnectHandler(Action<IEasySocket> action)
         {
-            connectAction = action;
+            _connectAction = action;
+            Logger?.LogDebug("[EasySocket Client] Add ConnectHandler");
         }
 
         public void ExceptionHandler(Action<Exception> action)
         {
-            exceptionAction = action;
+            _exceptionAction = action;
+            Logger?.LogDebug("[EasySocket Client] Add ExceptionHandler");
         }
     }
 }

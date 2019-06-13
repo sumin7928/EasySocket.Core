@@ -11,8 +11,8 @@ namespace EasySocket.Core.Options
         private static readonly bool defaultNoDelay = true;
 
         // socket options
-        private static readonly int defaultReadTimeout = 0;
-        private static readonly int defaultIdleTimeout = 15 * 60 * 1000; // 15분
+        private static readonly int defaultReadTimeout = 5 * 60 * 1000; // 5분
+        private static readonly int defaultIdleTimeout = 0;
         private static readonly int defaultReceiveBufferSize = 2048;
         private static readonly int defaultSendBufferSize = 2048;
 
