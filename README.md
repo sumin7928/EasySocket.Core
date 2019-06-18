@@ -64,7 +64,7 @@ var server = EasySocketFactory.CreateServer(options);
 ##### IEasySocketServer
 
 ```
-ILogger Logger {get; set;}
+ILogger<EasySocketServer> Logger {get; set;}
 void ConnectHandler(Action<INPTcpSocket> action);
 void ExceptionHandler(Action<Exception> action);
 void Run();
@@ -142,7 +142,7 @@ var client = NPStandardTcp.CreateClient(options);
 ##### IEsaySocketClient
 
 ```
-ILogger Logger {get; set;}
+ILogger<EasySocketClient> Logger {get; set;}
 void Connect();
 void Connect(string host, int port);
 void ConnectHandler(Action<INPTcpSocket> action);
@@ -199,6 +199,7 @@ client.Connect();
 ```
 ILogger Logger { get; }
 Socket Socket { get; }
+string SocketId { get; }
 SocketOptions SocketOptions { get; }
 Dictionary<object, object> Items { get; }
 
@@ -210,6 +211,8 @@ void Receive(Action<byte[]> action);
 void Receive(TotalLengthObject totalLengthObject, Action<byte[]> receiveBuffer);
 void Send(byte[] sendData, Action<int> length);
 void Send(byte[] sendData, int offset, int size, Action<int> length);
+void Send(byte[] sendData);
+void Send(byte[] sendData, int offset, int size);
 void Close();
 ```
 

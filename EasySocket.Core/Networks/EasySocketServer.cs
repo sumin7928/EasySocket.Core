@@ -11,20 +11,19 @@ using Microsoft.Extensions.Logging;
 
 namespace EasySocket.Core.Networks
 {
-    class EasySocketServer : IEasySocketServer
+    public class EasySocketServer : IEasySocketServer
     {
-        private readonly ServerOptions _options;
-
         private Action<IEasySocket> _connectAction;
         private Action<Exception> _exceptionAction;
         private TcpListener _tcpListener;
         private bool _acceptLoop = true;
 
-        public ILogger Logger { get; set; }
+        public ILogger<EasySocketServer> Logger { get; private set; }
+        public ServerOptions ServerOptions { get; set; } = new ServerOptions();
 
-        public EasySocketServer(ServerOptions options)
+        public EasySocketServer(ILogger<EasySocketServer> logger = null)
         {
-            this._options = options;
+            Logger = logger;
         }
 
         public void ConnectHandler(Action<IEasySocket> action)
@@ -41,7 +40,7 @@ namespace EasySocket.Core.Networks
 
         public void Run(int port)
         {
-            _options.Port = port;
+            ServerOptions.Port = port;
             Run();
         }
 
@@ -59,7 +58,7 @@ namespace EasySocket.Core.Networks
                         string socketId = KeyGenerator.GetServerSocketId();
                         Logger?.LogInformation("[{0}] Connected - [{1}] -> [{2}]", socketId, socket.RemoteEndPoint, socket.LocalEndPoint);
 
-                        _connectAction(new EasySocket(socketId, socket, Logger, _options));
+                        _connectAction(new EasySocket(Logger, socketId, socket, ServerOptions));
                     }
                 });
             }
@@ -86,15 +85,15 @@ namespace EasySocket.Core.Networks
                 throw new InvalidOperationException("Not found connection action handler");
             }
 
-            IPAddress addr = IPAddress.Parse(_options.Host);
-            TcpListener tcpListener = new TcpListener(addr, _options.Port);
+            IPAddress addr = IPAddress.Parse(ServerOptions.Host);
+            TcpListener tcpListener = new TcpListener(addr, ServerOptions.Port);
 
-            tcpListener.Server.ReceiveBufferSize = _options.ReceiveBufferSize;
-            tcpListener.Server.SendBufferSize = _options.SendBufferSize;
-            tcpListener.Server.NoDelay = _options.NoDelay;
-            tcpListener.Server.LingerState = _options.Linger;
+            tcpListener.Server.ReceiveBufferSize = ServerOptions.ReceiveBufferSize;
+            tcpListener.Server.SendBufferSize = ServerOptions.SendBufferSize;
+            tcpListener.Server.NoDelay = ServerOptions.NoDelay;
+            tcpListener.Server.LingerState = ServerOptions.Linger;
 
-            tcpListener.Start(_options.ListenBackLog);
+            tcpListener.Start(ServerOptions.ListenBackLog);
 
             return tcpListener;
         }

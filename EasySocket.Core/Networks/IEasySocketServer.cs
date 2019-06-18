@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using EasySocket.Core.Options;
 using Microsoft.Extensions.Logging;
 
 namespace EasySocket.Core.Networks
@@ -9,9 +10,14 @@ namespace EasySocket.Core.Networks
     public interface IEasySocketServer
     {
         /// <summary>
-        /// 사용되는 Logger를 지정한다.
+        /// 종속성 주입된 로거 프로퍼티
         /// </summary>
-        ILogger Logger { get; set; }
+        ILogger<EasySocketServer> Logger { get; }
+
+        /// <summary>
+        /// 서버 설정된 옵션 프로퍼티
+        /// </summary>
+        ServerOptions ServerOptions { get; set; }
 
         /// <summary>
         /// Accept가 발생할 때 Connection Handler 로 소켓 정보를 전달한다.

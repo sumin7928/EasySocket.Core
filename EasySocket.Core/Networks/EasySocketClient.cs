@@ -8,23 +8,22 @@ using System.Text;
 
 namespace EasySocket.Core.Networks
 {
-    class EasySocketClient : IEasySocketClient
+    public class EasySocketClient : IEasySocketClient
     {
-        private readonly ClientOptions _options;
-
         private Action<IEasySocket> _connectAction;
         private Action<Exception> _exceptionAction;
 
-        public ILogger Logger { get; set; }
+        public ILogger<EasySocketClient> Logger { get; private set; }
+        public ClientOptions ClientOptions { get; set; } = new ClientOptions();
 
-        public EasySocketClient(ClientOptions options)
+        public EasySocketClient(ILogger<EasySocketClient> logger = null)
         {
-            this._options = options;
+            Logger = logger;
         }
 
         public void Connect()
         {
-            Connect(_options.Host, _options.Port);
+            Connect(ClientOptions.Host, ClientOptions.Port);
         }
 
         public void Connect(string host, int port)
@@ -47,7 +46,7 @@ namespace EasySocket.Core.Networks
 
             var socketId = KeyGenerator.GetClientSocketId();
 
-            var tcpSocket = new EasySocket(socketId, socket, Logger, _options);
+            var tcpSocket = new EasySocket(Logger, socketId, socket,  ClientOptions);
             Logger?.LogInformation("[{0}] Connected - [{1}] -> [{2}]", socketId, socket.LocalEndPoint, socket.RemoteEndPoint);
 
             _connectAction(tcpSocket);

@@ -10,15 +10,16 @@ namespace EasySocket.Core.Networks
 {
     public interface IEasySocket
     {
-        /// <summary>
-        /// Logger 정보를 가져올 수 있다.
-        /// </summary>
-        ILogger Logger { get; }
 
         /// <summary>
         /// 소켓 정보를 가져올 수 있다.
         /// </summary>
         Socket Socket { get; }
+
+        /// <summary>
+        /// 소켓 Identity 값을 가져올 수 있다.
+        /// </summary>
+        string SocketId { get; }
 
         /// <summary>
         /// 소켓 옵션을 가져올 수 있다.
@@ -66,6 +67,20 @@ namespace EasySocket.Core.Networks
         /// <param name="totalLengthObject ">패킷 총길이에 따른 처리 설정 지정 오프젝트</param>
         /// <param name="receiveBuffer">패킷 byte[]을 받는 handler.</param>
         void Receive(TotalLengthObject totalLengthObject, Action<byte[]> receiveBuffer);
+
+        /// <summary>
+        /// 비동기로 socket send 처리 구현, action handler로 보낸 총 바이트 수를 받는다.
+        /// </summary>
+        /// <param name="sendData">보낼 byte[] 데이터.</param>
+        void Send(byte[] sendData);
+
+        /// <summary>
+        /// 비동기로 socket send 처리 구현, action handler로 보낸 총 바이트 수를 받는다.
+        /// </summary>
+        /// <param name="sendData">보낼 byte[] 데이터.</param>
+        /// <param name="offset">보낼 byte[]의 offset</param>
+        /// <param name="size">보낼 byte[]의 길이</param>
+        void Send(byte[] sendData, int offset, int size);
 
         /// <summary>
         /// 비동기로 socket send 처리 구현, action handler로 보낸 총 바이트 수를 받는다.

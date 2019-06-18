@@ -12,7 +12,7 @@ namespace EasySocket.Core.Networks
 {
     class EasySocket : IEasySocket
     {
-        private readonly string _socketId;
+        private readonly ILogger _logger;
 
         private Timer _readTimeoutTImer;
         private Timer _idleTimeoutTimer;
@@ -22,23 +22,22 @@ namespace EasySocket.Core.Networks
         private Action<string> _closedAction;
         private Action<Exception> _exceptionAction;
 
-        public ILogger Logger { get; private set; }
         public Socket Socket { get; private set; }
+        public string SocketId { get; private set; }
         public SocketOptions SocketOptions { get; private set; }
         public Dictionary<object, object> Items { get; private set; } = new Dictionary<object, object>();
 
-        public EasySocket(string socketId, Socket socket, ILogger logger, ServerOptions serverOptions)
+        public EasySocket(ILogger logger, string socketId, Socket socket, ServerOptions serverOptions)
         {
-            this._socketId = socketId;
-            Initialize(socket, logger, serverOptions);
+            this._logger = logger;
+            Initialize(socketId, socket, serverOptions);
         }
 
-        public EasySocket(string socketId, Socket socket, ILogger logger, ClientOptions clientOptions)
+        public EasySocket(ILogger logger, string socketId, Socket socket, ClientOptions clientOptions)
         {
-            this._socketId = socketId;
-            Initialize(socket, logger, clientOptions);
+            this._logger = logger;
+            Initialize(socketId, socket, clientOptions);
         }
-
 
         public void Close()
         {
@@ -46,44 +45,45 @@ namespace EasySocket.Core.Networks
             {
                 Socket.Shutdown(SocketShutdown.Both);
                 Socket.Close();
-                Logger?.LogInformation("[{0}] Closed", _socketId);
+                _logger?.LogInformation("[{0}] Closed", SocketId);
+                _closedAction?.Invoke(SocketId);
             }
             if (_idleTimeoutTimer != null)
             {
                 _idleTimeoutTimer.Dispose();
                 _idleTimeoutTimer = null;
-                Logger?.LogDebug("[{0}] Release idleTimeout", _socketId);
+                _logger?.LogDebug("[{0}] Release idleTimeout", SocketId);
             }
             if (_readTimeoutTImer != null)
             {
                 _readTimeoutTImer.Dispose();
                 _readTimeoutTImer = null;
-                Logger?.LogDebug("[{0}] Release readTimeout", _socketId);
+                _logger?.LogDebug("[{0}] Release readTimeout", SocketId);
             }
         }
 
         public void ReadTimeoutHandler(Action<string> action)
         {
             _readTimeoutAction = action;
-            Logger?.LogDebug("[{0}] Add ReadTimeoutHandler", _socketId);
+            _logger?.LogDebug("[{0}] Add ReadTimeoutHandler", SocketId);
         }
 
         public void IdleTimeoutHandler(Action<string> action)
         {
             _idleTimeoutAction = action;
-            Logger?.LogDebug("[{0}] Add IdleTimeoutHandler", _socketId);
+            _logger?.LogDebug("[{0}] Add IdleTimeoutHandler", SocketId);
         }
 
         public void CloseHandler(Action<string> action)
         {
             _closedAction = action;
-            Logger?.LogDebug("[{0}] Add CloseHandler", _socketId);
+            _logger?.LogDebug("[{0}] Add CloseHandler", SocketId);
         }
 
         public void ExceptionHandler(Action<Exception> action)
         {
             _exceptionAction = action;
-            Logger?.LogDebug("[{0}] Add ExceptionHandler", _socketId);
+            _logger?.LogDebug("[{0}] Add ExceptionHandler", SocketId);
         }
 
         public void Receive(Action<byte[]> action)
@@ -109,14 +109,24 @@ namespace EasySocket.Core.Networks
 
                 if (!Socket.Connected)
                 {
-                    _closedAction?.Invoke(_socketId);
+                    _closedAction?.Invoke(SocketId);
                 }
             }
+        }
+
+        public void Send(byte[] sendData)
+        {
+            Send(sendData, 0, sendData.Length, null);
         }
 
         public void Send(byte[] sendData, Action<int> length)
         {
             Send(sendData, 0, sendData.Length, length);
+        }
+
+        public void Send(byte[] sendData, int offset, int size)
+        {
+            Send(sendData, offset, size, null);
         }
 
         public void Send(byte[] sendData, int offset, int size, Action<int> length)
@@ -138,35 +148,35 @@ namespace EasySocket.Core.Networks
 
                 if (!Socket.Connected)
                 {
-                    _closedAction?.Invoke(_socketId);
+                    _closedAction?.Invoke(SocketId);
                 }
             }
         }
 
-        private void Initialize(Socket socket, ILogger logger, SocketOptions socketOptions)
+        private void Initialize(string socketId, Socket socket, SocketOptions socketOptions)
         {
             Socket = socket;
-            Logger = logger;
+            SocketId = socketId;
             SocketOptions = socketOptions;
 
             if (SocketOptions.IdleTimeout > 0)
             {
-                Logger?.LogDebug("[{0}] Apply IdleTimeout - {1}", _socketId, SocketOptions.IdleTimeout);
+                _logger?.LogDebug("[{0}] Apply IdleTimeout - {1}", SocketId, SocketOptions.IdleTimeout);
 
                 _idleTimeoutTimer = new Timer(timeout =>
                 {
-                    _idleTimeoutAction?.Invoke(_socketId);
+                    _idleTimeoutAction?.Invoke(SocketId);
                 });
                 _idleTimeoutTimer.Change(SocketOptions.IdleTimeout, Timeout.Infinite);
             }
 
             if (SocketOptions.ReadTimeout > 0)
             {
-                Logger?.LogDebug("[{0}] Apply readTimeout - {1}", _socketId, SocketOptions.ReadTimeout);
+                _logger?.LogDebug("[{0}] Apply readTimeout - {1}", SocketId, SocketOptions.ReadTimeout);
 
                 _readTimeoutTImer = new Timer(timeout =>
                 {
-                    _readTimeoutAction?.Invoke(_socketId);
+                    _readTimeoutAction?.Invoke(SocketId);
                 });
             }
         }
@@ -180,7 +190,7 @@ namespace EasySocket.Core.Networks
                 Socket socket = state.AsyncSocket;
                 if (!socket.Connected)
                 {
-                    _closedAction?.Invoke(_socketId);
+                    _closedAction?.Invoke(SocketId);
                     return;
                 }
 
@@ -195,7 +205,7 @@ namespace EasySocket.Core.Networks
 
                 int receivedSize = socket.EndReceive(result);
 
-                Logger?.LogInformation("[{0}] Receive - size:{1}", _socketId, receivedSize);
+                _logger?.LogInformation("[{0}] Receive - size:{1}", SocketId, receivedSize);
 
                 // 받은 데이터가 있을 경우
                 if (receivedSize > 0)
@@ -215,7 +225,7 @@ namespace EasySocket.Core.Networks
                     }
                     else
                     {
-                        _closedAction?.Invoke(_socketId);
+                        _closedAction?.Invoke(SocketId);
                     }
                 }
             }
@@ -225,7 +235,7 @@ namespace EasySocket.Core.Networks
 
                 if (!Socket.Connected)
                 {
-                    _closedAction?.Invoke(_socketId);
+                    _closedAction?.Invoke(SocketId);
                 }
             }
         }
@@ -315,9 +325,9 @@ namespace EasySocket.Core.Networks
                 AsyncSendState state = (AsyncSendState)ar.AsyncState;
 
                 int sendSize = state.AsyncSocket.EndSend(ar);
-                Logger?.LogInformation("[{0}] Send - size:{1}", _socketId, sendSize);
+                _logger?.LogInformation("[{0}] Send - size:{1}", SocketId, sendSize);
 
-                state.SendLength(sendSize);
+                state.SendLength?.Invoke(sendSize);
             }
             catch (Exception exception)
             {
@@ -325,7 +335,7 @@ namespace EasySocket.Core.Networks
 
                 if (!Socket.Connected)
                 {
-                    _closedAction?.Invoke(_socketId);
+                    _closedAction?.Invoke(SocketId);
                 }
             }
         }
