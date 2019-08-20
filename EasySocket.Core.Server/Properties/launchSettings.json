@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "EasySocket.Core.Server": {
+      "commandName": "Project"
+    }
+  }
+}

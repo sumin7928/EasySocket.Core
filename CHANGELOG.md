@@ -1,4 +1,10 @@
-﻿## 1.0.3
+﻿## 1.1.0
+
+- Modified total architecture and Use DI(Dependency Injection)
+- Refer to high performance socket server from ms-docs
+- Convert korean docs to eng version
+
+## 1.0.3
 
 - 소켓 Send시 사이즈 결과 핸들러 없는 함수 추가
 - 소켓 Close시 핸들러 호출 추가

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using EasySocket.Core.Factory;
+using System.Threading.Tasks;
+using EasySocket.Core.Networks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,26 +15,29 @@ namespace EasySocket.Core.Tests.Fixture
 
         public EchoServerFixture()
         {
-            var server = EasySocketFactory.CreateServer();
-            server.ConnectHandler(socket =>
+            Task.Run(() =>
             {
-                socket.Receive(receivedData =>
+                EasyServer server = new EasyServer();
+                server.ConnectHandler(socket =>
                 {
-                    socket.Send(receivedData, sendSize =>
+                    socket.Receive(receivedData =>
+                    {
+                        socket.Send(receivedData, sendSize =>
+                        {
+                        });
+                    });
+                    socket.CloseHandler(() =>
+                    {
+                    });
+                    socket.ExceptionHandler(exception =>
                     {
                     });
                 });
-                socket.CloseHandler(clientId =>
+                server.ExceptionHandler(exception =>
                 {
                 });
-                socket.ExceptionHandler(exception =>
-                {
-                });
+                server.Start("127.0.0.1", EchoServerPort);
             });
-            server.ExceptionHandler(exception =>
-            {
-            });
-            server.Run(EchoServerPort);
         }
 
         public void Dispose()

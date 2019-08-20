@@ -1,5 +1,6 @@
-using EasySocket.Core.Factory;
 using EasySocket.Core.Networks;
+using EasySocket.Core.Networks.Client;
+using EasySocket.Core.Tests.Fixture;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,8 +13,6 @@ namespace EasySocket.Core.Tests
 {
     public class DisconnectTest
     {
-        private const int DelayTime = 1500;
-
         private readonly ITestOutputHelper _output;
 
         public DisconnectTest(ITestOutputHelper output)
@@ -29,166 +28,74 @@ namespace EasySocket.Core.Tests
         [Fact]
         public void ClosedSocketFromServer()
         {
+            int port = 15001;
             string data = "testData";
             bool closed = false;
-            int targetPort = 10000;
 
-            var server = EasySocketFactory.CreateServer();
-            server.ConnectHandler(socket =>
+            EasyServer server = new EasyServer();
+            Task.Run(() =>
             {
-                socket.CloseHandler(clientId =>
+                server.ConnectHandler(socket =>
                 {
-                    _output.WriteLine("server closed socket - id: " + clientId);
-                });
-
-                socket.ExceptionHandler(exception =>
-                {
-                    _output.WriteLine("server socket exception - " + exception);
-                });
-
-                socket.Receive(receivedData =>
-                {
-                    _output.WriteLine("server received data - " + Encoding.UTF8.GetString(receivedData));
-
-                    // close
-                    socket.Close();
-
-                });
-            });
-            server.ExceptionHandler(exception =>
-            {
-                _output.WriteLine("server exception - " + exception);
-            });
-
-            server.Run(targetPort);
-
-            var client = EasySocketFactory.CreateClient();
-            var countdownEvent = new CountdownEvent(1);
-
-            client.ConnectHandler(socket =>
-            {
-                byte[] sendData = Encoding.UTF8.GetBytes(data);
-
-                socket.Receive(receivedData =>
-                {
-                    _output.WriteLine("client complete receive - size : " + receivedData.Length);
-                });
-
-                socket.Send(sendData, sendSize =>
-                {
-                    _output.WriteLine("client complete send - size : " + sendSize);
-
-                });
-
-                socket.CloseHandler(clientId =>
-                {
-                    _output.WriteLine("client closed socket - id: " + clientId);
-                    closed = true;
-                    countdownEvent.Signal();
-                });
-
-                socket.ExceptionHandler(exception =>
-                {
-                    _output.WriteLine("client socket exception" + exception);
-                });
-            });
-            client.ExceptionHandler(exception =>
-            {
-                _output.WriteLine("client exception" + exception);
-            });
-            client.Connect("127.0.0.1", targetPort);
-
-            countdownEvent.Wait(DelayTime);
-            server.Stop();
-            Assert.True(closed);
-        }
-
-        /// <summary>
-        /// 클라에서 끊겼을 경우
-        /// 서버에서 정상 패킷을 수신한 후 정상 응답을 보냈는데 클라에서는 Send 후 바로 Close 시킨 상황이라 비정상 예외가 발생하는 테스트
-        /// </summary>
-        /// <returns></returns>
-        [Fact]
-        public void ClosedSocketFromClient()
-        {
-            string data = "testData";
-            bool closed = false;
-            int targetPort = 10001;
-
-            var server = EasySocketFactory.CreateServer();
-            var countdownEvent = new CountdownEvent(1);
-
-            server.ConnectHandler(socket =>
-            {
-                socket.CloseHandler(clientId =>
-                {
-                    _output.WriteLine("server closed socket - id: " + clientId);
-                    closed = true;
-                    countdownEvent.Signal();
-                });
-
-                socket.ExceptionHandler(exception =>
-                {
-                    _output.WriteLine("server socket exception - " + exception);
-                });
-
-                socket.Receive(receivedData =>
-                {
-                    _output.WriteLine("server received data - " + Encoding.UTF8.GetString(receivedData));
-
-                    socket.Send(receivedData, sendSize =>
+                    string socketId = socket.SocketId;
+                    socket.CloseHandler(() =>
                     {
-                        _output.WriteLine("server completed send - size : " + sendSize);
-
+                        _output.WriteLine($"[{socketId}] server socket close handler");
+                    });
+                    socket.ExceptionHandler(exception =>
+                    {
+                        _output.WriteLine($"[{socketId}] server socket exception handler - {exception}");
+                    });
+                    socket.Receive(receivedData =>
+                    {
+                        string stringData = Encoding.UTF8.GetString(receivedData);
+                        _output.WriteLine($"[{socketId}] server socket receive - {stringData}:{stringData.Length}");
+                        socket.Close();
                     });
                 });
-            });
-            server.ExceptionHandler(exception =>
-            {
-                _output.WriteLine("server exception - " + exception);
-            });
-            server.Run(targetPort);
+                server.ExceptionHandler(exception =>
+                {
+                    _output.WriteLine($"server start exception handler - {exception}");
+                });
+                server.Start("127.0.0.1", port);
+            }).Wait(1500);
 
-            var client = EasySocketFactory.CreateClient();
+            EasyClient client = new EasyClient();
+            CountdownEvent countdownEvent = new CountdownEvent(1);
 
             client.ConnectHandler(socket =>
             {
-                byte[] sendData = Encoding.UTF8.GetBytes(data);
-
-                socket.Receive(receivedData =>
+                string socketId = socket.SocketId;
+                socket.CloseHandler(() =>
                 {
-                    _output.WriteLine("client complete receive - size : " + receivedData.Length);
+                    _output.WriteLine($"[{socketId}] client socket close handler");
+                    closed = true;
+                    countdownEvent.Signal();
                 });
-
-                socket.Send(sendData, sendSize =>
-                {
-                    _output.WriteLine("client complete send - size : " + sendSize);
-
-                    // close
-                    socket.Close();
-                });
-
-                socket.CloseHandler(clientId =>
-                {
-                    _output.WriteLine("client closed socket - id: " + clientId);
-                });
-
                 socket.ExceptionHandler(exception =>
                 {
-                    _output.WriteLine("client socket exception" + exception);
+                    _output.WriteLine($"[{socketId}] client socket close handler");
                 });
-            });
 
+                byte[] sendData = Encoding.UTF8.GetBytes(data);
+                socket.Send(sendData, sendSize =>
+                {
+                    _output.WriteLine($"[{socketId}] client socket send  - {data}:{data.Length}");
+                });
+                socket.Receive(receivedData =>
+                {
+                    string stringData = Encoding.UTF8.GetString(receivedData);
+                    _output.WriteLine($"[{socketId}] client socket receive  - {stringData}:{stringData.Length}");
+                });
+
+            });
             client.ExceptionHandler(exception =>
             {
-                _output.WriteLine("client exception" + exception);
+                _output.WriteLine($"client connect exception handler - {exception}");
             });
-
-            client.Connect("127.0.0.1", targetPort);
-
-            countdownEvent.Wait(DelayTime);
+            client.Connect("127.0.0.1", port);
+            countdownEvent.Wait();
             server.Stop();
-
             Assert.True(closed);
         }
     }

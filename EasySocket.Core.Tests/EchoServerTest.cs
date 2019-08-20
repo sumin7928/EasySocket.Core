@@ -1,4 +1,4 @@
-using EasySocket.Core.Factory;
+using EasySocket.Core.Networks.Client;
 using EasySocket.Core.Tests.Fixture;
 using System;
 using System.IO;
@@ -14,8 +14,6 @@ namespace EasySocket.Core.Tests
     [Collection("EchoServer")]
     public class EchoServerTest
     {
-        private const int AsyncDelayTimeOut = 1500;
-
         private readonly ITestOutputHelper _output;
 
         public EchoServerTest(ITestOutputHelper output)
@@ -30,8 +28,8 @@ namespace EasySocket.Core.Tests
             string data = "testData";
             string message = "";
 
-            var client = EasySocketFactory.CreateClient();
-            var countdownEvent = new CountdownEvent(1);
+            EasyClient client = new EasyClient();
+            CountdownEvent countdownEvent = new CountdownEvent(1);
 
             client.ConnectHandler(socket =>
             {
@@ -56,7 +54,7 @@ namespace EasySocket.Core.Tests
             });
 
             client.Connect("127.0.0.1", port);
-            countdownEvent.Wait(AsyncDelayTimeOut);
+            countdownEvent.Wait();
             Assert.Equal(data, message);
         }
 
@@ -68,8 +66,8 @@ namespace EasySocket.Core.Tests
             string secondData = "Data";
             string response = "";
 
-            var client = EasySocketFactory.CreateClient();
-            var countdownEvent = new CountdownEvent(2);
+            EasyClient client = new EasyClient();
+            CountdownEvent countdownEvent = new CountdownEvent(1);
 
             client.ConnectHandler(socket =>
             {
@@ -93,7 +91,10 @@ namespace EasySocket.Core.Tests
                     string data = Encoding.UTF8.GetString(receivedData);
                     _output.WriteLine("complete receive - data:{0}, size:{1}", data, data.Length);
                     response += data;
-                    countdownEvent.Signal();
+                    if(response.Equals(firstData + secondData))
+                    {
+                        countdownEvent.Signal();
+                    }
                 });
             });
 
@@ -103,7 +104,7 @@ namespace EasySocket.Core.Tests
             });
 
             client.Connect("127.0.0.1", port);
-            countdownEvent.Wait(AsyncDelayTimeOut);
+            countdownEvent.Wait();
             Assert.Equal(firstData + secondData, response);
         }
     }

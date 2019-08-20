@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using EasySocket.Core.Factory;
-using EasySocket.Core.Networks.Support;
+using EasySocket.Core.Networks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,57 +15,57 @@ namespace EasySocket.Core.Tests.Fixture
 
         public FixedEchoServerFixture()
         {
-            var littelEndianServer = EasySocketFactory.CreateServer();
+            EasyServer littelEndianServer = new EasyServer();
 
-            littelEndianServer.ConnectHandler(socket =>
-            {
-                var totalLengthObject = new TotalLengthObject
-                {
-                    IsBigEndian = false
-                };
-                socket.Receive(totalLengthObject, receivedData =>
-                {
-                    socket.Send(receivedData, sendSize =>
-                    {
-                    });
-                });
-                socket.CloseHandler(clientId =>
-                {
-                });
-                socket.ExceptionHandler(exception =>
-                {
-                });
-            });
-            littelEndianServer.ExceptionHandler(exception =>
-            {
-            });
-            littelEndianServer.Run(LittleEndianFixedEchoServerPort);
+            //littelEndianServer.ConnectHandler(socket =>
+            //{
+            //    var totalLengthObject = new TotalLengthObject
+            //    {
+            //        IsBigEndian = false
+            //    };
+            //    socket.Receive(totalLengthObject, receivedData =>
+            //    {
+            //        socket.Send(receivedData, sendSize =>
+            //        {
+            //        });
+            //    });
+            //    socket.CloseHandler(clientId =>
+            //    {
+            //    });
+            //    socket.ExceptionHandler(exception =>
+            //    {
+            //    });
+            //});
+            //littelEndianServer.ExceptionHandler(exception =>
+            //{
+            //});
+            //littelEndianServer.Run(LittleEndianFixedEchoServerPort);
 
-            var bigEndianServer = EasySocketFactory.CreateServer();
+            //var bigEndianServer = EasySocketFactory.CreateServer();
 
-            bigEndianServer.ConnectHandler(socket =>
-            {
-                var totalLengthObject = new TotalLengthObject
-                {
-                    IsBigEndian = true
-                };
-                socket.Receive(totalLengthObject, receivedData =>
-                {
-                    socket.Send(receivedData, sendSize =>
-                    {
-                    });
-                });
-                socket.CloseHandler(clientId =>
-                {
-                });
-                socket.ExceptionHandler(exception =>
-                {
-                });
-            });
-            bigEndianServer.ExceptionHandler(exception =>
-            {
-            });
-            bigEndianServer.Run(BigEndianFixedEchoServerPort);
+            //bigEndianServer.ConnectHandler(socket =>
+            //{
+            //    var totalLengthObject = new TotalLengthObject
+            //    {
+            //        IsBigEndian = true
+            //    };
+            //    socket.Receive(totalLengthObject, receivedData =>
+            //    {
+            //        socket.Send(receivedData, sendSize =>
+            //        {
+            //        });
+            //    });
+            //    socket.CloseHandler(clientId =>
+            //    {
+            //    });
+            //    socket.ExceptionHandler(exception =>
+            //    {
+            //    });
+            //});
+            //bigEndianServer.ExceptionHandler(exception =>
+            //{
+            //});
+            //bigEndianServer.Run(BigEndianFixedEchoServerPort);
         }
 
         public void Dispose()
