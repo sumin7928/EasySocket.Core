@@ -16,9 +16,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySocket.Core.Tests", "Ea
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{1E759C17-659E-4F62-BBBE-C22E9377153E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySocket.Core.Server", "EasySocket.Core.Server\EasySocket.Core.Server.csproj", "{DAC70865-5CAF-4DEC-AE8B-05DB22AD7470}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySocket.Core.ClientExample", "EasySocket.Core.ClientExample\EasySocket.Core.ClientExample.csproj", "{81D852EF-AB2C-47C8-BFF9-D27446D73332}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySocket.Core.Client", "EasySocket.Core.Client\EasySocket.Core.Client.csproj", "{9A47C099-269A-40CD-AB39-C8730E17BE0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySocket.Core.ServerExample", "EasySocket.Core.ServerExample\EasySocket.Core.ServerExample.csproj", "{897B7521-5ECE-4500-86AF-E2253CBC04EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,21 +34,21 @@ Global
 		{42C78527-CFA3-4319-953C-4E303A87BB41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42C78527-CFA3-4319-953C-4E303A87BB41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42C78527-CFA3-4319-953C-4E303A87BB41}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DAC70865-5CAF-4DEC-AE8B-05DB22AD7470}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DAC70865-5CAF-4DEC-AE8B-05DB22AD7470}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DAC70865-5CAF-4DEC-AE8B-05DB22AD7470}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DAC70865-5CAF-4DEC-AE8B-05DB22AD7470}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9A47C099-269A-40CD-AB39-C8730E17BE0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A47C099-269A-40CD-AB39-C8730E17BE0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A47C099-269A-40CD-AB39-C8730E17BE0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A47C099-269A-40CD-AB39-C8730E17BE0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81D852EF-AB2C-47C8-BFF9-D27446D73332}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81D852EF-AB2C-47C8-BFF9-D27446D73332}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81D852EF-AB2C-47C8-BFF9-D27446D73332}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81D852EF-AB2C-47C8-BFF9-D27446D73332}.Release|Any CPU.Build.0 = Release|Any CPU
+		{897B7521-5ECE-4500-86AF-E2253CBC04EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{897B7521-5ECE-4500-86AF-E2253CBC04EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{897B7521-5ECE-4500-86AF-E2253CBC04EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{897B7521-5ECE-4500-86AF-E2253CBC04EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{DAC70865-5CAF-4DEC-AE8B-05DB22AD7470} = {1E759C17-659E-4F62-BBBE-C22E9377153E}
-		{9A47C099-269A-40CD-AB39-C8730E17BE0A} = {1E759C17-659E-4F62-BBBE-C22E9377153E}
+		{81D852EF-AB2C-47C8-BFF9-D27446D73332} = {1E759C17-659E-4F62-BBBE-C22E9377153E}
+		{897B7521-5ECE-4500-86AF-E2253CBC04EF} = {1E759C17-659E-4F62-BBBE-C22E9377153E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA4AB57F-E1FB-46D7-BE93-79F3BD033FC4}
