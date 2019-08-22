@@ -78,7 +78,10 @@ namespace EasySocket.Core.Networks.Client
                 Socket = (Socket)args.UserToken
             };
 
-            clientSocket.Socket.NoDelay = EasyClientConfiguration.NoDelay;
+            clientSocket.Socket.NoDelay = SocketConfiguration.NoDelay;
+            clientSocket.Socket.ReceiveBufferSize = SocketConfiguration.ReceiveBufferSize;
+            clientSocket.Socket.SendBufferSize = SocketConfiguration.SendBufferSize;
+
             _connectAction.Invoke(clientSocket);
         }
 
@@ -93,7 +96,5 @@ namespace EasySocket.Core.Networks.Client
             _exceptionAction = action;
             _logger?.LogDebug("[EasySocket Client] Add ExceptionHandler");
         }
-
-
     }
 }

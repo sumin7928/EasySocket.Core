@@ -45,7 +45,7 @@ namespace EasySocket.Core.Networks.Server
             _accessController.Release();
 
             _closedAction?.Invoke();
-            Console.WriteLine("A client has been disconnected from the server. There are {0} clients connected to the server", _socketPool.GetCount());
+            _logger?.LogInformation("A client has been disconnected from the server. There are {0} clients connected to the server", _socketPool.GetCount());
         }
     }
 }

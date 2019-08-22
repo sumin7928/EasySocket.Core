@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Timers;
 using EasySocket.Core.Networks.Base.Configuration;
 using EasySocket.Core.Networks.Base.Token;
 using EasySocket.Core.Networks.Server.Configuration;
@@ -15,7 +13,9 @@ namespace EasySocket.Core.Networks.Base
     abstract class BaseSocket
     {
         protected readonly ILogger _logger;
-        protected readonly Timer _idleTimer;
+
+        protected Timer _idleTimeoutTimer;
+        protected Timer _readTimeoutTimer;
 
         protected Action _readTimeoutAction;
         protected Action _idleTimeoutAction;
@@ -35,27 +35,61 @@ namespace EasySocket.Core.Networks.Base
 
             ReceiveSocketAsyncEventArgs.SetBuffer(new byte[SocketConfiguration.ReceiveBufferSize], 0, SocketConfiguration.ReceiveBufferSize);
             ReceiveSocketAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(CompleteReadWriteEvent);
-
-            if (SocketConfiguration.IdleTimeout > 0)
-            {
-                _idleTimer = new Timer(id =>
-                {
-                    _idleTimeoutAction?.Invoke();
-                    Socket.Shutdown(SocketShutdown.Both);
-                });
-            }
         }
+
 
         public void IdleTimeoutHandler(Action action)
         {
+            if (SocketConfiguration.IdleTimeout > 0)
+            {
+                _idleTimeoutTimer = new Timer()
+                {
+                    Interval = SocketConfiguration.IdleTimeout,
+                    AutoReset = false,
+                    Enabled = true
+                };
+                _idleTimeoutTimer.Elapsed += OnIdleTimerEvent;
+            }
+
             _idleTimeoutAction = action;
             _logger?.LogDebug("[{0}] Add IdleTimeoutHandler", SocketId);
         }
 
         public void ReadTimeoutHandler(Action action)
         {
+            if (SocketConfiguration.ReadTimeout > 0)
+            {
+                _readTimeoutTimer = new Timer()
+                {
+                    Interval = SocketConfiguration.ReadTimeout,
+                    AutoReset = false,
+                    Enabled = true
+                };
+                _readTimeoutTimer.Elapsed += OnReadTimerEvent;
+            }
+
             _readTimeoutAction = action;
             _logger?.LogDebug("[{0}] Add CloseHandler", SocketId);
+        }
+
+        private void OnIdleTimerEvent(Object source, ElapsedEventArgs e)
+        {
+            _idleTimeoutAction?.Invoke();
+
+            if (Socket != null && Socket.Connected)
+            {
+                Close();
+            }
+        }
+
+        private void OnReadTimerEvent(Object source, ElapsedEventArgs e)
+        {
+            _readTimeoutAction?.Invoke();
+
+            if (Socket != null && Socket.Connected)
+            {
+                Close();
+            }
         }
 
         public void CloseHandler(Action action)
@@ -74,8 +108,6 @@ namespace EasySocket.Core.Networks.Base
 
         public void Receive(Action<byte[]> buffer)
         {
-            _idleTimer?.Change(SocketConfiguration.IdleTimeout, Timeout.Infinite);
-
             ReceiveToken token = new ReceiveToken
             {
                 ReceiveHandler = buffer
@@ -89,6 +121,8 @@ namespace EasySocket.Core.Networks.Base
         {
             try
             {
+                _idleTimeoutTimer?.Start();
+
                 if (Socket.ReceiveAsync(args) == false)
                 {
                     ProcessReceive(args);
@@ -107,6 +141,9 @@ namespace EasySocket.Core.Networks.Base
 
         private void ProcessReceive(SocketAsyncEventArgs args)
         {
+            _idleTimeoutTimer?.Stop();
+            _readTimeoutTimer?.Stop();
+
             if (args.BytesTransferred > 0 && args.SocketError == SocketError.Success)
             {
                 ReceiveToken token = (ReceiveToken)args.UserToken;
@@ -117,11 +154,7 @@ namespace EasySocket.Core.Networks.Base
                     byte[] receiveBuffer = new byte[token.BufferLength];
                     Array.Copy(args.Buffer, receiveBuffer, token.BufferLength);
                     token.BufferLength = 0;
-
-                    Task.Run(() =>
-                    {
-                        token.ReceiveHandler(receiveBuffer);
-                    });
+                    token.ReceiveHandler(receiveBuffer);
 
                     StartReceive(args);
                 }
@@ -177,6 +210,7 @@ namespace EasySocket.Core.Networks.Base
         {
             try
             {
+                _readTimeoutTimer?.Start();
 
                 if (Socket.SendAsync(args) == false)
                 {

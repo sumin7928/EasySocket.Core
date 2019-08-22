@@ -42,6 +42,7 @@ All communication is done asynchronously. For the server, the flow is controlled
     "LingerTime": 0,
 
     "EasySocket": {
+      "NoDelay": true,
       "ReceiveBufferSize": 2048,
       "SendBufferSize": 2048,
       "IdleTimeout": 0
@@ -58,9 +59,9 @@ The server manages pooled sockets with the maximum number of connections and man
 ```json
 {
   "EasyClient": {
-    "NoDelay": true,
 
     "EasySocket": {
+      "NoDelay": true,
       "ReceiveBufferSize": 2048,
       "SendBufferSize": 2048,
       "ReadTimeout": 0
@@ -69,9 +70,9 @@ The server manages pooled sockets with the maximum number of connections and man
 }
 ```
 
-클라이언트는 Nagle 알고리즘 인 NoDelay와 요청 후 응답 시간 초과 인 ReadTimeout을 설정할 수 있습니다.
+클라이언트는 요청 후 응답 시간 초과 인 ReadTimeout을 설정할 수 있습니다.
 
-The client can set the NoDelay, which is the Nagle algorithm, and the ReadTimeout, which is the response timeout after request.
+The client can set the ReadTimeout, which is the response timeout after request.
 
 ### Sample Sources
 

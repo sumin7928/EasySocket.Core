@@ -169,6 +169,9 @@ namespace EasySocket.Core.Networks
                     {
                         easySocket.SocketId = KeyGenerator.GetServerSocketId();
                         easySocket.Socket = socket;
+                        easySocket.Socket.NoDelay = SocketConfiguration.NoDelay;
+                        easySocket.Socket.ReceiveBufferSize = SocketConfiguration.ReceiveBufferSize;
+                        easySocket.Socket.SendBufferSize = SocketConfiguration.SendBufferSize;
 
                         Console.WriteLine("Client connection accepted. There are {0} clients connected to the server", _socketPool.GetCount());
 

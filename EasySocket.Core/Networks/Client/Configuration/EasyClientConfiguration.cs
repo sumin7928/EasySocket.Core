@@ -6,6 +6,5 @@ namespace EasySocket.Core.Networks.Client.Configuration
 {
     public class EasyClientConfiguration
     {
-        public bool NoDelay { get; set; } = true;
     }
 }
