@@ -8,7 +8,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>socket, tcp, network, dotnet, dotnet core, server, client</PackageTags>
     <Authors>sumin7928</Authors>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
